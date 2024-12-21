@@ -14,6 +14,7 @@ import {
   Maximize,
   ShoppingCart,
   Check,
+  BadgeCheck,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import axios from "axios";
@@ -429,9 +430,17 @@ const PropertyDetails = ({ properties, loggedIn }) => {
               </div>
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-2 md:mb-0 text-gray-800">
-                    {name}
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-2 md:mb-0 text-gray-800">
+                      {name}
+                    </h2>
+                    {propertyData?.isVerified && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white rounded-full text-sm">
+                        <BadgeCheck size={16} />
+                        <span className="text-xs font-medium">Verified</span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-2xl md:text-3xl text-red-600 font-bold">
                     ₹{formattedPrice}
                     {saleOrRent === "rent" ? "/month" : ""}

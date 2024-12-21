@@ -436,7 +436,12 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   const handleVerificationSubmit = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem("userData"));
-      await axios.put(
+      if (!userData || !userData._id) {
+        showAlert("Admin session not found. Please login again.", "error");
+        return;
+      }
+
+      const response = await axios.put(
         `http://localhost:4000/api/properties/${propertyToVerify._id}/verify`,
         {
           isVerified: !propertyToVerify.isVerified,
@@ -444,17 +449,20 @@ const AdminPanel = ({ properties, refreshProperties }) => {
           adminId: userData._id
         }
       );
-      refreshProperties();
-      setShowVerificationModal(false);
-      setPropertyToVerify(null);
-      setVerificationNote("");
-      showAlert(
-        `Property ${propertyToVerify.isVerified ? 'unverified' : 'verified'} successfully`,
-        "success"
-      );
+
+      if (response.data) {
+        showAlert(response.data.message, "success");
+        await refreshProperties(); // Refresh the properties list
+        setShowVerificationModal(false);
+        setPropertyToVerify(null);
+        setVerificationNote("");
+      }
     } catch (error) {
       console.error("Error verifying property:", error);
-      showAlert("Error updating verification status", "error");
+      showAlert(
+        error.response?.data?.message || "Error updating verification status", 
+        "error"
+      );
     }
   };
 
@@ -1007,7 +1015,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
-      {/* Add Alert Component */}
+      {/* Alert Component */}
       {alert.show && (
         <div
           className={`fixed top-24 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${

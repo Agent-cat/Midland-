@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, BedDouble, ChefHat, Maximize } from "lucide-react";
+import { MapPin, BedDouble, ChefHat, Maximize, BadgeCheck } from "lucide-react";
 
 const Card = ({ props }) => {
   const navigate = useNavigate();
@@ -18,6 +18,12 @@ const Card = ({ props }) => {
       onClick={handleCardClick}
     >
       <img src={images[0]} alt={name} className="w-full h-48 object-cover" />
+      {props.isVerified && (
+        <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center gap-1 text-sm shadow-md">
+          <BadgeCheck size={16} />
+          <span className="text-xs font-medium">Verified</span>
+        </div>
+      )}
       <p className="absolute top-2 left-2 bg-red-400 text-white px-2 font-bold py-1 rounded-md text-sm">
         {saleOrRent.toUpperCase()}
       </p>

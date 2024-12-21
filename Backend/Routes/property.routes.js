@@ -157,33 +157,43 @@ router.post("/cart/add", addToCart);
 router.post("/cart/remove", removeFromCart);
 router.get("/cart/:userId", getCart);
 
-// Add verification route
+// Update the verification route
 router.put(
   "/:propertyId/verify",
   asyncHandler(async (req, res) => {
     try {
       const { isVerified, verificationNote, adminId } = req.body;
+      console.log("Verification request:", { isVerified, verificationNote, adminId }); // Debug log
       
+      // Validate adminId
       if (!adminId) {
         return res.status(400).json({ message: "Admin ID is required" });
       }
 
+      // Find the property
       const property = await Property.findById(req.params.propertyId);
-
       if (!property) {
         return res.status(404).json({ message: "Property not found" });
       }
 
-      property.isVerified = isVerified;
-      property.verificationNote = verificationNote;
-      property.verifiedAt = isVerified ? new Date() : null;
-      property.verifiedBy = isVerified ? adminId : null;
+      // Update property verification fields
+      const updates = {
+        isVerified: isVerified,
+        verificationNote: verificationNote || "",
+        verifiedAt: isVerified ? new Date() : null,
+        verifiedBy: isVerified ? adminId : null
+      };
 
-      await property.save();
-      
+      // Use findByIdAndUpdate instead of save()
+      const updatedProperty = await Property.findByIdAndUpdate(
+        req.params.propertyId,
+        updates,
+        { new: true }
+      );
+
       res.json({
         message: `Property ${isVerified ? 'verified' : 'unverified'} successfully`,
-        property
+        property: updatedProperty
       });
     } catch (error) {
       console.error("Error in property verification:", error);
