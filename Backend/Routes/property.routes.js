@@ -18,29 +18,43 @@ const {
 router.post(
   "/",
   asyncHandler(async (req, res) => {
-    const existingProperty = await Property.findOne({
-      name: req.body.name,
-      location: req.body.location,
-      address: req.body.address,
-    });
+    try {
+      const { userId, sellerName, ...propertyData } = req.body;
 
-    if (existingProperty) {
-      return res.status(409).json({
-        message: "Property already exists",
-        property: existingProperty,
+      if (!userId) {
+        return res.status(400).json({ message: "Seller ID is required" });
+      }
+
+      const existingProperty = await Property.findOne({
+        name: propertyData.name,
+        location: propertyData.location,
+        address: propertyData.address,
       });
-    }
 
-    const property = await Property.create(req.body);
+      if (existingProperty) {
+        return res.status(409).json({
+          message: "Property already exists",
+          property: existingProperty,
+        });
+      }
 
-    if (property) {
+      const property = await Property.create({
+        ...propertyData,
+        sellerId: userId,
+        sellerName: sellerName,
+        status: "available"
+      });
+
       res.status(201).json({
         message: "Property created successfully",
         property: property,
       });
-    } else {
-      res.status(400);
-      throw new Error("Invalid property data");
+    } catch (error) {
+      console.error("Error creating property:", error);
+      res.status(500).json({ 
+        message: "Error creating property", 
+        error: error.message 
+      });
     }
   })
 );
@@ -123,11 +137,62 @@ router.get(
   })
 );
 
+router.get(
+  "/seller/:userId",
+  asyncHandler(async (req, res) => {
+    try {
+      const properties = await Property.find({ sellerId: req.params.userId })
+        .sort("-createdAt");
+      res.json(properties);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  })
+);
+
 router.get("/:id", getpropertybyid);
 router.put("/:id", updateproperty);
 router.delete("/:id", deleteproperty);
 router.post("/cart/add", addToCart);
 router.post("/cart/remove", removeFromCart);
 router.get("/cart/:userId", getCart);
+
+// Add verification route
+router.put(
+  "/:propertyId/verify",
+  asyncHandler(async (req, res) => {
+    try {
+      const { isVerified, verificationNote, adminId } = req.body;
+      
+      if (!adminId) {
+        return res.status(400).json({ message: "Admin ID is required" });
+      }
+
+      const property = await Property.findById(req.params.propertyId);
+
+      if (!property) {
+        return res.status(404).json({ message: "Property not found" });
+      }
+
+      property.isVerified = isVerified;
+      property.verificationNote = verificationNote;
+      property.verifiedAt = isVerified ? new Date() : null;
+      property.verifiedBy = isVerified ? adminId : null;
+
+      await property.save();
+      
+      res.json({
+        message: `Property ${isVerified ? 'verified' : 'unverified'} successfully`,
+        property
+      });
+    } catch (error) {
+      console.error("Error in property verification:", error);
+      res.status(500).json({ 
+        message: "Error updating property verification status",
+        error: error.message 
+      });
+    }
+  })
+);
 
 module.exports = router;

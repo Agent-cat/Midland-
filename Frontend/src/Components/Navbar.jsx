@@ -3,7 +3,7 @@ import { NavLink, useLocation, Link } from "react-router-dom";
 import { Navlinks } from "../Constants/Constants";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { Menu, X, UserCircle, LogOut, ShoppingCart } from "lucide-react";
+import { Menu, X, UserCircle, LogOut, ShoppingCart, User } from "lucide-react";
 import LoginRoutes from "../Routes/LoginRoutes";
 import Cart from "./Cart";
 
@@ -172,6 +172,13 @@ const Navbar = ({ data, setData, loggedIn, setLoggedIn }) => {
               </button>
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-100">
+                  <Link
+                    to="/profile"
+                    className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-all duration-200"
+                  >
+                    <User size={16} className="mr-3" />
+                    <span className="font-medium">Profile</span>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 transition-all duration-200"

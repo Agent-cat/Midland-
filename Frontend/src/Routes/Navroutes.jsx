@@ -8,6 +8,7 @@ import PropertyDetails from "../Pages/PropertyDetails";
 import Sell from "../Pages/Sell";
 import LoginRequired from "../Components/LoginRequired";
 import AdminPanel from "../Pages/AdminPanel";
+import UserProfile from "../Pages/UserProfile";
 
 const Navroutes = ({
   data,
@@ -56,6 +57,20 @@ const Navroutes = ({
             />
           ) : (
             <Navigate to="/" />
+          )
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          loggedIn ? (
+            <UserProfile 
+              userData={data} 
+              setUserData={setData}
+              properties={properties}
+            />
+          ) : (
+            <Navigate to="/loginrequired" />
           )
         }
       />

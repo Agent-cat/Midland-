@@ -51,6 +51,33 @@ const propertySchema = new mongoose.Schema(
         ref: "PropertyView",
       },
     ],
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    sellerName: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["available", "sold", "rented"],
+      default: "available"
+    },
+    soldDate: {
+      type: Date
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    verificationNote: String,
+    verifiedAt: Date,
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
   },
   {
     timestamps: true,

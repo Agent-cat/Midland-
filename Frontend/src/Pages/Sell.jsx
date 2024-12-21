@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 const Sell = ({ refreshProperties }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ show: false, message: "", type: "" });
   const [formData, setFormData] = useState({
     name: "",
     type: "flats",
@@ -25,6 +26,13 @@ const Sell = ({ refreshProperties }) => {
     kitchen: 0,
   });
   const [images, setImages] = useState([]);
+
+  const showAlert = (message, type = "success") => {
+    setAlert({ show: true, message, type });
+    setTimeout(() => {
+      setAlert({ show: false, message: "", type: "" });
+    }, 3000);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -74,23 +82,36 @@ const Sell = ({ refreshProperties }) => {
     setLoading(true);
 
     try {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      if (!userData) {
+        throw new Error("User data not found");
+      }
+
       const propertyData = {
         ...formData,
-        images: images,
+        images,
+        userId: userData._id,
+        sellerName: userData.username || formData.ownerName,
+        status: "available"
       };
 
       const response = await axios.post(
         "http://localhost:4000/api/properties",
         propertyData
       );
-      if (response.status === 201) {
+
+      if (response.data) {
+        showAlert("Property listed successfully!", "success");
         refreshProperties();
-        alert("Property listed successfully!");
         navigate("/buy");
       }
     } catch (error) {
       console.error("Error submitting property:", error);
-      alert("Error submitting property");
+      if (error.response?.status === 409) {
+        showAlert("This property already exists", "error");
+      } else {
+        showAlert(error.response?.data?.message || "Error listing property", "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -98,6 +119,16 @@ const Sell = ({ refreshProperties }) => {
 
   return (
     <div className="container mx-auto mt-24 p-8  rounded-xl shadow-lg">
+      {alert.show && (
+        <div
+          className={`fixed top-24 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
+            alert.type === "error" ? "bg-red-500" : "bg-green-500"
+          } text-white`}
+        >
+          {alert.message}
+        </div>
+      )}
+
       <h1 className="text-4xl font-extrabold mb-12 text-center text-red-600 font-['Onest',sans-serif] animate-fade-in">
         List Your Property
       </h1>

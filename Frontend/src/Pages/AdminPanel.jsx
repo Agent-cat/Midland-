@@ -20,6 +20,8 @@ import {
   Mail,
   Phone,
   Edit,
+  BadgeCheck,
+  XCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -63,6 +65,9 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   });
   const [alert, setAlert] = useState({ show: false, message: "", type: "" });
   const [feedbacks, setFeedbacks] = useState([]);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [propertyToVerify, setPropertyToVerify] = useState(null);
+  const [verificationNote, setVerificationNote] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -423,6 +428,36 @@ const AdminPanel = ({ properties, refreshProperties }) => {
     }
   };
 
+  const handleVerifyProperty = async (property) => {
+    setPropertyToVerify(property);
+    setShowVerificationModal(true);
+  };
+
+  const handleVerificationSubmit = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      await axios.put(
+        `http://localhost:4000/api/properties/${propertyToVerify._id}/verify`,
+        {
+          isVerified: !propertyToVerify.isVerified,
+          verificationNote,
+          adminId: userData._id
+        }
+      );
+      refreshProperties();
+      setShowVerificationModal(false);
+      setPropertyToVerify(null);
+      setVerificationNote("");
+      showAlert(
+        `Property ${propertyToVerify.isVerified ? 'unverified' : 'verified'} successfully`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error verifying property:", error);
+      showAlert("Error updating verification status", "error");
+    }
+  };
+
   const renderContent = () => {
     if (loading) {
       return <PropertyLoading />;
@@ -451,7 +486,13 @@ const AdminPanel = ({ properties, refreshProperties }) => {
                       alt={property.name}
                       className="w-full h-48 object-cover"
                     />
-                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:flex items-center justify-center gap-3">
+                    {property.isVerified && (
+                      <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full flex items-center gap-1 text-sm">
+                        <BadgeCheck size={16} />
+                        Verified
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -485,50 +526,60 @@ const AdminPanel = ({ properties, refreshProperties }) => {
                     </div>
                   </div>
                   <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-lg">
-                        {property.name}
-                      </h3>
-                      <div className="flex items-center gap-2 md:hidden">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-lg">{property.name}</h3>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewDetails(property);
-                          }}
-                          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                          onClick={() => handleVerifyProperty(property)}
+                          className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm transition-colors ${
+                            property.isVerified
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                         >
-                          <Eye size={18} className="text-blue-500" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditClick(property);
-                          }}
-                          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                          <Edit size={18} className="text-gray-700" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteProperty(property._id);
-                          }}
-                          className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                          <Trash2 size={18} className="text-red-500" />
+                          {property.isVerified ? (
+                            <>
+                              <BadgeCheck size={16} />
+                              Verified
+                            </>
+                          ) : (
+                            <>
+                              <XCircle size={16} />
+                              Verify
+                            </>
+                          )}
                         </button>
                       </div>
-                    </div>
-                    <p className="text-gray-600 mb-2">
-                      {property.location}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-red-500 font-bold">
+
+                      {property.isVerified && (
+                        <div className="text-sm text-gray-500">
+                          <p>Verified on: {new Date(property.verifiedAt).toLocaleDateString()}</p>
+                          {property.verificationNote && (
+                            <p className="mt-1 italic">"{property.verificationNote}"</p>
+                          )}
+                        </div>
+                      )}
+
+                      <p className="text-gray-600 text-sm">{property.location}</p>
+                      <p className="text-red-500 font-semibold">
                         ₹{property.price.toLocaleString()}
                       </p>
-                      <div className="flex items-center gap-1 text-gray-500 text-sm">
-                        <Eye size={16} />
-                        <span>{property.views?.length || 0}</span>
+
+                      <div className="flex justify-between items-center mt-2">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          property.status === 'available' 
+                            ? 'bg-green-100 text-green-800' 
+                            : property.status === 'sold'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">
+                            {property.views?.length || 0} views
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -955,17 +1006,20 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Alert Component */}
+    <div className="min-h-screen bg-gray-50 pt-20">
+      {/* Add Alert Component */}
       {alert.show && (
         <div
           className={`fixed top-24 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
-            alert.type === "error"
-              ? "bg-red-500 text-white"
-              : "bg-green-500 text-white"
-          }`}
+            alert.type === "error" ? "bg-red-500" : "bg-green-500"
+          } text-white flex items-center gap-2`}
         >
-          {alert.message}
+          {alert.type === "success" ? (
+            <Check size={20} />
+          ) : (
+            <AlertTriangle size={20} />
+          )}
+          <span>{alert.message}</span>
         </div>
       )}
 
@@ -1567,6 +1621,62 @@ const AdminPanel = ({ properties, refreshProperties }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Verification Modal */}
+      {showVerificationModal && propertyToVerify && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">
+                {propertyToVerify.isVerified ? "Unverify" : "Verify"} Property
+              </h3>
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <h4 className="font-medium mb-1">{propertyToVerify.name}</h4>
+              <p className="text-gray-600 text-sm">{propertyToVerify.location}</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Verification Note
+              </label>
+              <textarea
+                value={verificationNote}
+                onChange={(e) => setVerificationNote(e.target.value)}
+                placeholder="Add a note about verification status..."
+                rows="3"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-400"
+              />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerificationSubmit}
+                className={`px-6 py-2 text-white rounded-lg ${
+                  propertyToVerify.isVerified
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-green-500 hover:bg-green-600'
+                }`}
+              >
+                {propertyToVerify.isVerified ? "Unverify" : "Verify"}
+              </button>
+            </div>
           </div>
         </div>
       )}
