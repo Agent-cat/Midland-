@@ -77,7 +77,11 @@ const propertySchema = new mongoose.Schema(
     verifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
-    }
+    },
+    videos: [{
+      type: String,
+      required: false
+    }]
   },
   {
     timestamps: true,

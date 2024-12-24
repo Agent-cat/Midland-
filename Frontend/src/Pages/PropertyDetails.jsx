@@ -15,6 +15,7 @@ import {
   ShoppingCart,
   Check,
   BadgeCheck,
+  Video,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import axios from "axios";
@@ -46,6 +47,8 @@ const PropertyDetails = ({ properties, loggedIn }) => {
   const [showPhoneModal, setShowPhoneModal] = useState(true);
   const [userPhone, setUserPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [showVideos, setShowVideos] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     const loadPropertyData = async () => {
@@ -299,6 +302,12 @@ const PropertyDetails = ({ properties, loggedIn }) => {
     }
   };
 
+  const handleViewChange = (view) => {
+    setShowPhotos(view === 'photos');
+    setShowVideos(view === 'videos');
+    setShowMap(view === 'map');
+  };
+
   return (
     <>
       <Helmet>
@@ -347,21 +356,25 @@ const PropertyDetails = ({ properties, loggedIn }) => {
             <div className="flex justify-center space-x-4 mb-6">
               <button
                 className={`flex items-center px-4 py-2 rounded-full ${
-                  showPhotos
-                    ? "bg-red-600 text-white"
-                    : "bg-gray-200 text-gray-800"
+                  showPhotos ? "bg-red-600 text-white" : "bg-gray-200 text-gray-800"
                 }`}
-                onClick={() => setShowPhotos(true)}
+                onClick={() => handleViewChange('photos')}
               >
                 <Image className="mr-2" /> Photos
               </button>
               <button
                 className={`flex items-center px-4 py-2 rounded-full ${
-                  !showPhotos
-                    ? "bg-red-600 text-white"
-                    : "bg-gray-200 text-gray-800"
+                  showVideos ? "bg-red-600 text-white" : "bg-gray-200 text-gray-800"
                 }`}
-                onClick={() => setShowPhotos(false)}
+                onClick={() => handleViewChange('videos')}
+              >
+                <Video className="mr-2" /> Videos
+              </button>
+              <button
+                className={`flex items-center px-4 py-2 rounded-full ${
+                  showMap ? "bg-red-600 text-white" : "bg-gray-200 text-gray-800"
+                }`}
+                onClick={() => handleViewChange('map')}
               >
                 <Map className="mr-2" /> Map
               </button>
@@ -369,7 +382,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1">
                 <div className="relative mb-6 rounded-xl w-full h-[400px] md:h-[calc(100vh-300px)]">
-                  {showPhotos ? (
+                  {showPhotos && (
                     <>
                       <AnimatePresence mode="wait">
                         <motion.img
@@ -399,15 +412,26 @@ const PropertyDetails = ({ properties, loggedIn }) => {
                         <ChevronRight />
                       </button>
                     </>
-                  ) : (
+                  )}
+                  {showMap && (
                     <iframe
                       src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3896.4200262163104!2d80.62001967522313!3d16.441925684292904!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a35f0a2a7d81943%3A0x8ba5d78f65df94b8!2sK%20L%20E%20F%20Deemed%20To%20Be%20University!5e1!3m2!1sen!2sin!4v1729451108838!5m2!1sen!2sin"
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
                       loading="eager"
-                      className="rounded-xl h-[400px]  md:h-[calc(100vh-240px)]"
+                      className="rounded-xl h-[400px] md:h-[calc(100vh-240px)]"
                     ></iframe>
+                  )}
+                  {showVideos && propertyData.videos && propertyData.videos.length > 0 && (
+                    <video
+                      src={propertyData.videos[0]}
+                      className="w-full h-full object-cover rounded-xl"
+                      controls
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                 </div>
                 {showPhotos && (

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Upload, Video, X } from "lucide-react";
 
 const Sell = ({ refreshProperties }) => {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ const Sell = ({ refreshProperties }) => {
     kitchen: 0,
   });
   const [images, setImages] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
 
   const showAlert = (message, type = "success") => {
     setAlert({ show: true, message, type });
@@ -77,6 +81,67 @@ const Sell = ({ refreshProperties }) => {
     }
   };
 
+  const handleVideoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploadingVideos(true);
+
+    try {
+      const uploadPromises = files.map(async (file) => {
+        if (file.size > 500 * 1024 * 1024) {
+          throw new Error("Video file size should be less than 500MB");
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "midland_property");
+        formData.append("resource_type", "video");
+        formData.append("chunk_size", 10000000);
+        formData.append("eager", [
+          { streaming_profile: "full_hd", format: "m3u8" },
+          { quality: "auto", format: "mp4" }
+        ]);
+
+        try {
+          const response = await axios.post(
+            "https://api.cloudinary.com/v1_1/vishnu2005/video/upload",
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              },
+              onUploadProgress: (progressEvent) => {
+                const percentCompleted = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                );
+                setUploadProgress(prev => ({
+                  ...prev,
+                  [file.name]: percentCompleted
+                }));
+              },
+              maxContentLength: Infinity,
+              maxBodyLength: Infinity,
+              timeout: 1800000
+            }
+          );
+          
+          return response.data.secure_url;
+        } catch (uploadError) {
+          console.error("Upload error details:", uploadError.response?.data || uploadError);
+          throw new Error(`Failed to upload video: ${uploadError.message}`);
+        }
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setVideos((prev) => [...prev, ...uploadedUrls]);
+      showAlert("Videos uploaded successfully", "success");
+    } catch (error) {
+      console.error("Error uploading videos:", error);
+      showAlert(error.message || "Error uploading videos. Please try again.", "error");
+    } finally {
+      setUploadingVideos(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -90,6 +155,7 @@ const Sell = ({ refreshProperties }) => {
       const propertyData = {
         ...formData,
         images,
+        videos,
         userId: userData._id,
         sellerName: userData.username || formData.ownerName,
         status: "available"
@@ -446,6 +512,82 @@ const Sell = ({ refreshProperties }) => {
                 />
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Video Upload Section */}
+        <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 mt-6">
+          <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+            Property Videos
+          </h2>
+          <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <label className="flex-1">
+                <div className="relative">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleVideoUpload}
+                    accept="video/*"
+                    className="hidden"
+                    disabled={uploadingVideos}
+                  />
+                  <div className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-red-400 cursor-pointer">
+                    <div className="text-center">
+                      {uploadingVideos ? (
+                        <div className="flex flex-col items-center">
+                          <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent"></div>
+                          <p className="mt-2 text-sm text-gray-600">Uploading videos...</p>
+                        </div>
+                      ) : (
+                        <>
+                          <Video className="mx-auto h-12 w-12 text-gray-400" />
+                          <p className="mt-1 text-sm text-gray-600">
+                            Click to upload videos (Max 500MB each)
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            {/* Video Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {videos.map((url, index) => (
+                <div key={index} className="relative">
+                  <video
+                    src={url}
+                    className="w-full rounded-lg"
+                    controls
+                    preload="metadata"
+                  />
+                  <button
+                    onClick={() => {
+                      setVideos(videos.filter((_, i) => i !== index));
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    disabled={uploadingVideos}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {uploadingVideos && Object.entries(uploadProgress).map(([fileName, progress]) => (
+              <div key={fileName} className="mt-2">
+                <div className="text-sm text-gray-600">{fileName}</div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-red-500 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">{progress}%</div>
+              </div>
+            ))}
           </div>
         </div>
 
