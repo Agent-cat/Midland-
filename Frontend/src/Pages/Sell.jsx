@@ -54,30 +54,89 @@ const Sell = ({ refreshProperties }) => {
     }));
   };
 
+  const uploadInChunks = async (file, resourceType = 'image', chunkSize = 5242880) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'midland_property');
+      formData.append('resource_type', resourceType);
+
+      formData.append('chunk_size', chunkSize);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/vishnu2005/upload`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(prev => ({
+              ...prev,
+              [file.name]: percentCompleted
+            }));
+          },
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity
+        }
+      );
+
+      return response.data.secure_url;
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+  };
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     setLoading(true);
 
     try {
       const uploadPromises = files.map(async (file) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "midland_property");
+        try {
+          if (file.size > 10 * 1024 * 1024) {
+            return await uploadInChunks(file, 'image');
+          } else {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'midland_property');
 
-        const response = await axios.post(
-          `https://api.cloudinary.com/v1_1/vishnu2005/image/upload`,
-          formData
-        );
-        return response.data.secure_url;
+            const response = await axios.post(
+              `https://api.cloudinary.com/v1_1/vishnu2005/image/upload`,
+              formData,
+              {
+                onUploadProgress: (progressEvent) => {
+                  const percentCompleted = Math.round(
+                    (progressEvent.loaded * 100) / progressEvent.total
+                  );
+                  setUploadProgress(prev => ({
+                    ...prev,
+                    [file.name]: percentCompleted
+                  }));
+                }
+              }
+            );
+            return response.data.secure_url;
+          }
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          throw error;
+        }
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
-      setImages((prev) => [...prev, ...uploadedUrls]);
+      setImages(prev => [...prev, ...uploadedUrls]);
+      showAlert("Images uploaded successfully", "success");
     } catch (error) {
       console.error("Error uploading images:", error);
-      alert("Error uploading images");
+      showAlert("Error uploading images. Please try again.", "error");
     } finally {
       setLoading(false);
+      setUploadProgress({});
     }
   };
 
@@ -87,23 +146,21 @@ const Sell = ({ refreshProperties }) => {
 
     try {
       const uploadPromises = files.map(async (file) => {
-        if (file.size > 500 * 1024 * 1024) {
-          throw new Error("Video file size should be less than 500MB");
+        if (file.size > 100 * 1024 * 1024) {
+          throw new Error("Video file size should be less than 100MB");
         }
 
         const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "midland_property");
-        formData.append("resource_type", "video");
-        formData.append("chunk_size", 10000000);
-        formData.append("eager", [
-          { streaming_profile: "full_hd", format: "m3u8" },
-          { quality: "auto", format: "mp4" }
-        ]);
+        formData.append('file', file);
+        formData.append('upload_preset', 'midland_property');
+        formData.append('resource_type', 'video');
+        
+        formData.append('timestamp', (Date.now() / 1000) | 0);
+        formData.append('api_key', 'your_cloudinary_api_key');
 
         try {
           const response = await axios.post(
-            "https://api.cloudinary.com/v1_1/vishnu2005/video/upload",
+            'https://api.cloudinary.com/v1_1/vishnu2005/auto/upload',
             formData,
             {
               headers: {
@@ -118,27 +175,39 @@ const Sell = ({ refreshProperties }) => {
                   [file.name]: percentCompleted
                 }));
               },
-              maxContentLength: Infinity,
-              maxBodyLength: Infinity,
-              timeout: 1800000
+              timeout: 180000,
+              maxContentLength: 100 * 1024 * 1024,
+              maxBodyLength: 100 * 1024 * 1024
             }
           );
-          
-          return response.data.secure_url;
+
+          if (response.data && response.data.secure_url) {
+            showAlert(`Successfully uploaded ${file.name}`, "success");
+            return response.data.secure_url;
+          } else {
+            throw new Error('Upload response missing secure_url');
+          }
         } catch (uploadError) {
-          console.error("Upload error details:", uploadError.response?.data || uploadError);
-          throw new Error(`Failed to upload video: ${uploadError.message}`);
+          console.error("Upload error details:", uploadError);
+          if (uploadError.response) {
+            console.error("Error response:", uploadError.response.data);
+          }
+          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
         }
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
-      setVideos((prev) => [...prev, ...uploadedUrls]);
-      showAlert("Videos uploaded successfully", "success");
+      setVideos(prev => [...prev, ...uploadedUrls]);
+      showAlert("All videos uploaded successfully", "success");
     } catch (error) {
       console.error("Error uploading videos:", error);
-      showAlert(error.message || "Error uploading videos. Please try again.", "error");
+      showAlert(
+        error.message || "Error uploading videos. Please try again.", 
+        "error"
+      );
     } finally {
       setUploadingVideos(false);
+      setUploadProgress({});
     }
   };
 
@@ -537,13 +606,18 @@ const Sell = ({ refreshProperties }) => {
                       {uploadingVideos ? (
                         <div className="flex flex-col items-center">
                           <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent"></div>
-                          <p className="mt-2 text-sm text-gray-600">Uploading videos...</p>
+                          <p className="mt-2 text-sm text-gray-600">
+                            Uploading videos... Please wait
+                          </p>
                         </div>
                       ) : (
                         <>
                           <Video className="mx-auto h-12 w-12 text-gray-400" />
                           <p className="mt-1 text-sm text-gray-600">
-                            Click to upload videos (Max 500MB each)
+                            Click to upload videos (Max 100MB each)
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Supported formats: MP4, WebM, MOV
                           </p>
                         </>
                       )}
@@ -552,6 +626,22 @@ const Sell = ({ refreshProperties }) => {
                 </div>
               </label>
             </div>
+
+            {/* Upload Progress */}
+            {Object.entries(uploadProgress).map(([fileName, progress]) => (
+              <div key={fileName} className="mt-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>{fileName}</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                  <div
+                    className="bg-red-500 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            ))}
 
             {/* Video Preview */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -575,19 +665,6 @@ const Sell = ({ refreshProperties }) => {
                 </div>
               ))}
             </div>
-
-            {uploadingVideos && Object.entries(uploadProgress).map(([fileName, progress]) => (
-              <div key={fileName} className="mt-2">
-                <div className="text-sm text-gray-600">{fileName}</div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-red-500 h-2.5 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">{progress}%</div>
-              </div>
-            ))}
           </div>
         </div>
 
