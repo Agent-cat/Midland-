@@ -2,15 +2,22 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    if (mongoose.connections[0].readyState) {
+      // If already connected, reuse the connection
+      return;
+    }
+
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      retryWrites: true,
+    });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    // If the index doesn't exist, just continue
-    if (!error.message.includes("index not found")) {
-      console.error(`Error: ${error.message}`);
-      process.exit(1);
-    }
+    console.error(`Error connecting to MongoDB: ${error.message}`);
+    throw error;
   }
 };
 
