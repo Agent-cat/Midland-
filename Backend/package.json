@@ -4,6 +4,7 @@
   "description": "Backend for a house rental website",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "npx nodemon index.js"
   },
   "author": "vishnu",
