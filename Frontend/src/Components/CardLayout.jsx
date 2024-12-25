@@ -4,7 +4,7 @@ import Card from "./Card";
 import Filters from "./Filters";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { LoaderCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { LoaderCircle, ChevronLeft, ChevronRight, BadgeCheck } from "lucide-react";
 
 const CardLayout = ({ initialProperties }) => {
   const [filteredProperties, setFilteredProperties] =
@@ -15,6 +15,7 @@ const CardLayout = ({ initialProperties }) => {
   const containerRef = useRef(null);
   const loaderRef = useRef(null);
   const cardRefs = useRef([]);
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
 
   useEffect(() => {
     setFilteredProperties(initialProperties);
@@ -35,6 +36,10 @@ const CardLayout = ({ initialProperties }) => {
     setIsFiltering(true);
     setCurrentPage(1);
     let result = initialProperties;
+
+    if (showVerifiedOnly) {
+      result = result.filter(property => property.isVerified);
+    }
 
     if (filters.location && filters.location.length > 0) {
       result = result.filter((property) =>
@@ -101,6 +106,10 @@ const CardLayout = ({ initialProperties }) => {
     });
   };
 
+  useEffect(() => {
+    applyFilters({});
+  }, [showVerifiedOnly]);
+
   useGSAP(() => {
     if (!isFiltering) {
       gsap.to(containerRef.current, { opacity: 1, duration: 0.5 });
@@ -149,10 +158,48 @@ const CardLayout = ({ initialProperties }) => {
     }
   };
 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
+  }, []);
+
   return (
     <>
       <div className="filter-container">
+        
         <Filters props={initialProperties} onFilterChange={applyFilters} />
+        <div className="flex justify-start mb-4 px-4">
+          <label className="flex items-center cursor-pointer group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={showVerifiedOnly}
+                onChange={() => setShowVerifiedOnly(!showVerifiedOnly)}
+              />
+              <div className="w-10 h-6 bg-gray-200 rounded-full shadow-inner transition-colors duration-300 group-hover:bg-gray-300"></div>
+              <div
+                className={`absolute w-4 h-4 rounded-full shadow transition-transform duration-300 ease-in-out top-1 left-1
+                  ${showVerifiedOnly 
+                    ? 'transform translate-x-4 bg-green-500' 
+                    : 'transform translate-x-0 bg-white'
+                  }`}
+              ></div>
+            </div>
+            <div className="flex items-center gap-1 ml-3 text-gray-700 font-medium">
+              <BadgeCheck 
+                size={20} 
+                className={`transition-colors duration-300 ${
+                  showVerifiedOnly ? "text-green-500" : "text-gray-400"
+                }`}
+              />
+              <span className="text-sm">Verified Properties Only</span>
+            </div>
+          </label>
+        </div>
       </div>
       {!isFiltering && (
         <>

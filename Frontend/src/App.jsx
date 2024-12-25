@@ -5,6 +5,7 @@ import Navroutes from "./Routes/Navroutes";
 import axios from "axios";
 import { HelmetProvider } from "react-helmet-async";
 import Chatbot from "./Components/Chatbot";
+import ScrollToTop from "./Components/ScrollToTop";
 
 const App = () => {
   const [data, setData] = useState(() => {
@@ -79,6 +80,7 @@ const App = () => {
           refreshProperties={fetchProperties}
         />
         <Chatbot />
+        <ScrollToTop />
       </div>
     </HelmetProvider>
   );
