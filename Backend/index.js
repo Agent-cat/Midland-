@@ -1,54 +1,37 @@
-const express = require("express");
 require("dotenv").config();
-const app = express();
+const express = require("express");
 const cors = require("cors");
-const connectDB = require("./Database/db.js");
+const connectDB = require("./Database/db");
+const authRoutes = require("./Routes/auth.routes");
 const propertyRoutes = require("./Routes/property.routes.js");
-const authRoutes = require("./Routes/auth.routes.js");
 const feedbackRoutes = require("./Routes/feedback.routes.js");
 const contactRoutes = require("./Routes/contact.routes.js");
 
-// Error handling middleware
-const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something broke!' });
-};
+const app = express();
 
-// Initialize app with middleware
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
-  credentials: true
-}));
-
-// Health check route
-app.get("/", (req, res) => {
-  res.json({ message: "API is running" });
-});
 
 // Routes
-app.use("/api/properties", propertyRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/properties", propertyRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/contacts", contactRoutes);
 
-// Error handling
-app.use(errorHandler);
-
 // Connect to database
-const startServer = async () => {
-  try {
-    await connectDB();
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    // Don't exit process in serverless environment
-    return;
-  }
-};
+connectDB();
 
-startServer();
+// Add this before your routes
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: err.message || "Something went wrong!",
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
 
-// Export for serverless
-module.exports = app;
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
