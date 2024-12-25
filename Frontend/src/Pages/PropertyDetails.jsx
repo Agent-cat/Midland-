@@ -16,6 +16,12 @@ import {
   Check,
   BadgeCheck,
   Video,
+  Building2,
+  Trees,
+  Layers,
+  Droplets,
+  Ruler,
+  Compass,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import axios from "axios";
@@ -308,6 +314,153 @@ const PropertyDetails = ({ properties, loggedIn }) => {
     setShowMap(view === 'map');
   };
 
+  const renderPropertyDetails = () => {
+    switch (propertyData.type) {
+      case 'flats':
+      case 'houses':
+      case 'villas':
+        return (
+          <div className="flex flex-wrap gap-6">
+            {propertyData.bhk && (
+              <div className="flex items-center">
+                <Home className="mr-2 text-red-600" />
+                <span>{propertyData.bhk} BHK</span>
+              </div>
+            )}
+            {propertyData.bedroom && (
+              <div className="flex items-center">
+                <Bed className="mr-2 text-red-600" />
+                <span>{propertyData.bedroom} Bedrooms</span>
+              </div>
+            )}
+            {propertyData.bathroom && (
+              <div className="flex items-center">
+                <Bath className="mr-2 text-red-600" />
+                <span>{propertyData.bathroom} Bathrooms</span>
+              </div>
+            )}
+            {propertyData.kitchen && (
+              <div className="flex items-center">
+                <ChefHat className="mr-2 text-red-600" />
+                <span>{propertyData.kitchen} Kitchen</span>
+              </div>
+            )}
+            {propertyData.sqft && (
+              <div className="flex items-center">
+                <Maximize className="mr-2 text-red-600" />
+                <span>{propertyData.sqft} sq.ft</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'shops':
+        return (
+          <div className="flex flex-wrap gap-6">
+            {propertyData.sqft && (
+              <div className="flex items-center">
+                <Maximize className="mr-2 text-red-600" />
+                <span>{propertyData.sqft} sq.ft</span>
+              </div>
+            )}
+            {propertyData.floors && (
+              <div className="flex items-center">
+                <Building2 className="mr-2 text-red-600" />
+                <span>{propertyData.floors} Floor(s)</span>
+              </div>
+            )}
+            {propertyData.washroom && (
+              <div className="flex items-center">
+                <Bath className="mr-2 text-red-600" />
+                <span>{propertyData.washroom} Washroom(s)</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'agriculture land':
+        return (
+          <div className="flex flex-wrap gap-6">
+            {propertyData.acres && (
+              <div className="flex items-center">
+                <Trees className="mr-2 text-red-600" />
+                <span>{propertyData.acres} Acres</span>
+              </div>
+            )}
+            {propertyData.soil_type && (
+              <div className="flex items-center">
+                <Layers className="mr-2 text-red-600" />
+                <span>Soil: {propertyData.soil_type}</span>
+              </div>
+            )}
+            {propertyData.water_source && (
+              <div className="flex items-center">
+                <Droplets className="mr-2 text-red-600" />
+                <span>Water: {propertyData.water_source}</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'residential land':
+        return (
+          <div className="flex flex-wrap gap-6">
+            {propertyData.sqft && (
+              <div className="flex items-center">
+                <Maximize className="mr-2 text-red-600" />
+                <span>{propertyData.sqft} sq.ft</span>
+              </div>
+            )}
+            {propertyData.dimensions && (
+              <div className="flex items-center">
+                <Ruler className="mr-2 text-red-600" />
+                <span>Size: {propertyData.dimensions}</span>
+              </div>
+            )}
+            {propertyData.facing && (
+              <div className="flex items-center">
+                <Compass className="mr-2 text-red-600" />
+                <span>Facing: {propertyData.facing}</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'farmhouse':
+        return (
+          <div className="flex flex-wrap gap-6">
+            {propertyData.acres && (
+              <div className="flex items-center">
+                <Trees className="mr-2 text-red-600" />
+                <span>{propertyData.acres} Acres</span>
+              </div>
+            )}
+            {propertyData.bedroom && (
+              <div className="flex items-center">
+                <Bed className="mr-2 text-red-600" />
+                <span>{propertyData.bedroom} Bedrooms</span>
+              </div>
+            )}
+            {propertyData.bathroom && (
+              <div className="flex items-center">
+                <Bath className="mr-2 text-red-600" />
+                <span>{propertyData.bathroom} Bathrooms</span>
+              </div>
+            )}
+            {propertyData.kitchen && (
+              <div className="flex items-center">
+                <ChefHat className="mr-2 text-red-600" />
+                <span>{propertyData.kitchen} Kitchen</span>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -477,24 +630,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
                   <h3 className="text-xl font-semibold mb-3 text-gray-800">
                     Property Details:
                   </h3>
-                  <div className="flex flex-wrap gap-6">
-                    <div className="flex items-center">
-                      <Bed className="mr-2 text-red-600" />
-                      <span>{bhk} Bedrooms</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Bath className="mr-2 text-red-600" />
-                      <span>{bathroom} Bathrooms</span>
-                    </div>
-                    <div className="flex items-center">
-                      <ChefHat className="mr-2 text-red-600" />
-                      <span>{kitchen} Kitchen</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Maximize className="mr-2 text-red-600" />
-                      <span>{sqft} sqft</span>
-                    </div>
-                  </div>
+                  {renderPropertyDetails()}
                 </div>
                 <div>
                   <div className="flex space-x-6 mb-4 border-b border-gray-200">

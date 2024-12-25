@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, BedDouble, ChefHat, Maximize, BadgeCheck } from "lucide-react";
+import { MapPin, BedDouble, ChefHat, Maximize, BadgeCheck, Trees, Droplets, Compass } from "lucide-react";
 
 const Card = ({ props }) => {
   const navigate = useNavigate();
@@ -9,8 +9,109 @@ const Card = ({ props }) => {
     navigate(`/property/${props._id}`, { state: { propertyData: props } });
   };
 
-  const { name, price, saleOrRent, images, address, bedroom, kitchen, sqft } =
-    props;
+  const { name, price, saleOrRent, images, address, type } = props;
+
+  const renderPropertyDetails = () => {
+    switch (type) {
+      case 'flats':
+      case 'houses':
+      case 'villas':
+        return (
+          <div className="flex items-center text-gray-600">
+            {props.bedroom && (
+              <>
+                <BedDouble size={18} className="mr-1" />
+                <p className="text-sm mr-3">{props.bedroom} Bedroom</p>
+              </>
+            )}
+            {props.kitchen && (
+              <>
+                <ChefHat size={18} className="mr-1" />
+                <p className="text-sm mr-3">{props.kitchen} Kitchen</p>
+              </>
+            )}
+            {props.sqft && (
+              <>
+                <Maximize size={18} className="mr-1" />
+                <p className="text-sm">{props.sqft} sq.ft</p>
+              </>
+            )}
+          </div>
+        );
+
+      case 'shops':
+        return (
+          <div className="flex items-center text-gray-600">
+            {props.sqft && (
+              <>
+                <Maximize size={18} className="mr-1" />
+                <p className="text-sm mr-3">{props.sqft} sq.ft</p>
+              </>
+            )}
+            {props.floors && (
+              <p className="text-sm">{props.floors} Floor(s)</p>
+            )}
+          </div>
+        );
+
+      case 'agriculture land':
+        return (
+          <div className="flex items-center text-gray-600">
+            {props.acres && (
+              <>
+                <Trees size={18} className="mr-1" />
+                <p className="text-sm mr-3">{props.acres} Acres</p>
+              </>
+            )}
+            {props.water_source && (
+              <>
+                <Droplets size={18} className="mr-1" />
+                <p className="text-sm">{props.water_source}</p>
+              </>
+            )}
+          </div>
+        );
+
+      case 'residential land':
+        return (
+          <div className="flex items-center text-gray-600">
+            {props.sqft && (
+              <>
+                <Maximize size={18} className="mr-1" />
+                <p className="text-sm mr-3">{props.sqft} sq.ft</p>
+              </>
+            )}
+            {props.facing && (
+              <>
+                <Compass size={18} className="mr-1" />
+                <p className="text-sm">{props.facing} Facing</p>
+              </>
+            )}
+          </div>
+        );
+
+      case 'farmhouse':
+        return (
+          <div className="flex items-center text-gray-600">
+            {props.acres && (
+              <>
+                <Trees size={18} className="mr-1" />
+                <p className="text-sm mr-3">{props.acres} Acres</p>
+              </>
+            )}
+            {props.bedroom && (
+              <>
+                <BedDouble size={18} className="mr-1" />
+                <p className="text-sm">{props.bedroom} Bedroom</p>
+              </>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -38,14 +139,7 @@ const Card = ({ props }) => {
           {saleOrRent === "rent" ? "/month" : ""}
         </p>
         <div className="flex justify-between mt-3">
-          <div className="flex items-center text-gray-600">
-            <BedDouble size={18} className="mr-1" />
-            <p className="text-sm mr-3">{bedroom} Bedroom</p>
-            <ChefHat size={18} className="mr-1" />
-            <p className="text-sm mr-3">{kitchen} Kitchen</p>
-            <Maximize size={18} className="mr-1" />
-            <p className="text-sm">{sqft} sq.ft</p>
-          </div>
+          {renderPropertyDetails()}
         </div>
       </div>
     </div>

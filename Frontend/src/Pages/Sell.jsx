@@ -3,6 +3,44 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Upload, Video, X } from "lucide-react";
 
+const propertyTypeConfig = {
+  flats: {
+    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft'],
+    details: ['lift', 'parking', 'security', 'swimming_pool', 'gym'],
+    amenities: ['24/7 Water', 'Power Backup', 'CCTV', 'Fire Safety', 'Club House']
+  },
+  houses: {
+    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'floors'],
+    details: ['parking', 'garden', 'security'],
+    amenities: ['24/7 Water', 'Power Backup', 'Rain Water Harvesting', 'Solar Panels']
+  },
+  villas: {
+    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'garden_area'],
+    details: ['swimming_pool', 'parking', 'garden', 'security'],
+    amenities: ['24/7 Water', 'Power Backup', 'Club House', 'Garden']
+  },
+  shops: {
+    fields: ['sqft', 'floors', 'washroom'],
+    details: ['parking', 'storage', 'security'],
+    amenities: ['24/7 Water', 'Power Backup', 'CCTV', 'Fire Safety']
+  },
+  'agriculture land': {
+    fields: ['acres', 'soil_type', 'water_source'],
+    details: ['road_access', 'electricity', 'boundary'],
+    amenities: ['Bore Well', 'Canal Water', 'Farm House']
+  },
+  'residential land': {
+    fields: ['sqft', 'dimensions', 'facing'],
+    details: ['road_access', 'boundary'],
+    amenities: ['Water Connection', 'Electricity', 'Road Access']
+  },
+  farmhouse: {
+    fields: ['acres', 'bhk', 'bedroom', 'bathroom', 'kitchen'],
+    details: ['garden', 'farming_area', 'water_source'],
+    amenities: ['24/7 Water', 'Power Backup', 'Farm Area', 'Garden']
+  }
+};
+
 const Sell = ({ refreshProperties }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -10,21 +48,26 @@ const Sell = ({ refreshProperties }) => {
   const [formData, setFormData] = useState({
     name: "",
     type: "flats",
-    sqft: "",
     location: "vijayawada",
-    bhk: "",
-    address: "",
-    ownerName: "",
     saleOrRent: "sale",
     price: "",
-    details: "",
+    address: "",
+    bhk: "",
+    sqft: "",
+    acres: "",
+    bedroom: "",
+    bathroom: "",
+    kitchen: "",
+    floors: "",
+    washroom: "",
+    soil_type: "",
+    water_source: "",
+    facing: "",
     dimensions: "",
     overview: "",
-    amenities: [],
+    details: "",
     locationMap: "",
-    bedroom: 0,
-    bathroom: 0,
-    kitchen: 0,
+    amenities: []
   });
   const [images, setImages] = useState([]);
   const [videos, setVideos] = useState([]);
@@ -40,10 +83,16 @@ const Sell = ({ refreshProperties }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const validation = validateField(name, value);
+
+    if (validation === true) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    } else {
+      showAlert(validation, 'error');
+    }
   };
 
   const handleAmenitiesChange = (e) => {
@@ -216,44 +265,166 @@ const Sell = ({ refreshProperties }) => {
     setLoading(true);
 
     try {
+      // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem("userData"));
-      if (!userData) {
-        throw new Error("User data not found");
+      if (!userData?._id) {
+        throw new Error("User not authenticated");
       }
 
+      // Get required fields based on property type
+      const requiredFields = ['name', 'type', 'location', 'price', 'address', 'saleOrRent'];
+      const typeSpecificFields = propertyTypeConfig[formData.type]?.fields || [];
+      const allRequiredFields = [...requiredFields, ...typeSpecificFields];
+
+      // Check for missing required fields
+      const missingFields = allRequiredFields.filter(field => {
+        const value = formData[field];
+        return value === undefined || value === "" || value === 0;
+      });
+
+      if (missingFields.length > 0) {
+        const formattedFields = missingFields.map(field => 
+          field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        ).join(', ');
+        throw new Error(`Please fill in all required fields: ${formattedFields}`);
+      }
+
+      if (images.length === 0) {
+        throw new Error("Please upload at least one image");
+      }
+
+      // Create property data object with required user info
       const propertyData = {
         ...formData,
+        userId: userData._id,  // Add this for seller ID
+        sellerId: userData._id, // Add both to ensure compatibility
+        sellerName: userData.username || userData.name, // Fallback to name if username doesn't exist
         images,
         videos,
-        userId: userData._id,
-        sellerName: userData.username || formData.ownerName,
-        status: "available"
+        price: Number(formData.price),
+        status: "pending"
       };
+
+      // Convert numeric fields
+      ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'acres', 'floors', 'washroom'].forEach(field => {
+        if (propertyData[field]) {
+          propertyData[field] = Number(propertyData[field]);
+        }
+      });
+
+      console.log("Submitting property data:", propertyData); // Debug log
 
       const response = await axios.post(
         "http://localhost:4000/api/properties",
-        propertyData
+        propertyData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            // Add authorization if you're using tokens
+            "Authorization": `Bearer ${localStorage.getItem("userInfo")}`
+          }
+        }
       );
 
       if (response.data) {
         showAlert("Property listed successfully!", "success");
-        refreshProperties();
-        navigate("/buy");
+        await refreshProperties();
+        setTimeout(() => {
+          navigate("/profile");
+        }, 2000);
       }
     } catch (error) {
       console.error("Error submitting property:", error);
-      if (error.response?.status === 409) {
-        showAlert("This property already exists", "error");
-      } else {
-        showAlert(error.response?.data?.message || "Error listing property", "error");
-      }
+      const errorMessage = error.response?.data?.message || error.message || "Error submitting property";
+      showAlert(errorMessage, "error");
     } finally {
       setLoading(false);
     }
   };
 
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'price':
+        return value > 0 ? true : 'Price must be greater than 0';
+      case 'sqft':
+      case 'acres':
+        return value > 0 ? true : 'Area must be greater than 0';
+      case 'phone':
+        return /^\d{10}$/.test(value) ? true : 'Invalid phone number';
+      case 'email':
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? true : 'Invalid email';
+      default:
+        return true;
+    }
+  };
+
+  const renderPropertyFields = () => {
+    const fields = propertyTypeConfig[formData.type]?.fields || [];
+    
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {fields.map((field) => (
+          <div key={field}>
+            <label className="block mb-2 text-gray-800 font-semibold">
+              {field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}*
+            </label>
+            {field === 'soil_type' || field === 'water_source' || field === 'facing' ? (
+              <select
+                name={field}
+                value={formData[field] || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              >
+                {getOptionsForField(field).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type={field === 'sqft' || field === 'acres' ? 'number' : 'text'}
+                name={field}
+                value={formData[field] || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+                placeholder={getPlaceholderForField(field)}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const getOptionsForField = (field) => {
+    switch (field) {
+      case 'soil_type':
+        return ['Black Soil', 'Red Soil', 'Sandy Soil', 'Loamy Soil'];
+      case 'water_source':
+        return ['Bore Well', 'Canal', 'River', 'Rain Fed'];
+      case 'facing':
+        return ['North', 'South', 'East', 'West', 'North East', 'North West', 'South East', 'South West'];
+      default:
+        return [];
+    }
+  };
+
+  const getPlaceholderForField = (field) => {
+    switch (field) {
+      case 'sqft':
+        return 'Enter area in square feet';
+      case 'acres':
+        return 'Enter area in acres';
+      case 'dimensions':
+        return 'e.g., 30x40';
+      default:
+        return `Enter ${field.split('_').join(' ')}`;
+    }
+  };
+
   return (
-    <div className="container mx-auto mt-24 p-8  rounded-xl shadow-lg">
+    <div className="min-h-screen bg-gray-50 pt-20 pb-10 px-4">
       {alert.show && (
         <div
           className={`fixed top-24 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
@@ -267,230 +438,175 @@ const Sell = ({ refreshProperties }) => {
       <h1 className="text-4xl font-extrabold mb-12 text-center text-red-600 font-['Onest',sans-serif] animate-fade-in">
         List Your Property
       </h1>
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Basic Information */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
-              Basic Information
-            </h2>
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Property Name*
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                />
-              </div>
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
+        {/* Basic Information */}
+        <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+          <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+            Basic Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Property Name*
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Property Type*
-                </label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                >
-                  <option value="flats">Flats</option>
-                  <option value="houses">Houses</option>
-                  <option value="villas">Villas</option>
-                  <option value="shops">Shops</option>
-                  <option value="agriculture land">Agriculture Land</option>
-                  <option value="residential land">Residential Land</option>
-                  <option value="farmhouse">Farmhouse</option>
-                </select>
-              </div>
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Purpose*
+              </label>
+              <select
+                name="saleOrRent"
+                value={formData.saleOrRent}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              >
+                <option value="sale">For Sale</option>
+                <option value="rent">For Rent</option>
+              </select>
+            </div>
 
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Square Feet*
-                </label>
-                <input
-                  type="number"
-                  name="sqft"
-                  value={formData.sqft}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                {formData.saleOrRent === "rent" ? "Rent per month (₹)*" : "Price (₹)*"}
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+                min="0"
+                placeholder={formData.saleOrRent === "rent" ? "Enter monthly rent" : "Enter property price"}
+              />
+            </div>
 
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Location*
-                </label>
-                <select
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                >
-                  <option value="vijayawada">Vijayawada</option>
-                  <option value="amravathi">Amravathi</option>
-                  <option value="guntur">Guntur</option>
-                </select>
-              </div>
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Property Type*
+              </label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              >
+                {Object.keys(propertyTypeConfig).map(type => (
+                  <option key={type} value={type}>
+                    {type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Square Feet*
+              </label>
+              <input
+                type="number"
+                name="sqft"
+                value={formData.sqft}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Location*
+              </label>
+              <select
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              >
+                <option value="vijayawada">Vijayawada</option>
+                <option value="amravathi">Amravathi</option>
+                <option value="guntur">Guntur</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          {/* Property Details */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
-              Property Details
-            </h2>
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  BHK*
-                </label>
+        {/* Property Details */}
+        <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+          <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+            Property Details
+          </h2>
+          {renderPropertyFields()}
+        </div>
+
+        {/* Amenities Section */}
+        <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+          <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+            Amenities
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {propertyTypeConfig[formData.type]?.amenities.map((amenity) => (
+              <label key={amenity} className="flex items-center space-x-2">
                 <input
-                  type="number"
-                  name="bhk"
-                  value={formData.bhk}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
+                  type="checkbox"
+                  checked={formData.amenities.includes(amenity)}
+                  onChange={(e) => {
+                    const updatedAmenities = e.target.checked
+                      ? [...formData.amenities, amenity]
+                      : formData.amenities.filter(a => a !== amenity);
+                    setFormData({ ...formData, amenities: updatedAmenities });
+                  }}
+                  className="form-checkbox h-5 w-5 text-red-500 rounded focus:ring-red-400"
                 />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Owner Name*
-                </label>
-                <input
-                  type="text"
-                  name="ownerName"
-                  value={formData.ownerName}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Listing Type*
-                </label>
-                <select
-                  name="saleOrRent"
-                  value={formData.saleOrRent}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                >
-                  <option value="sale">Sale</option>
-                  <option value="rent">Rent</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Price*
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  required
-                />
-              </div>
-            </div>
+                <span>{amenity}</span>
+              </label>
+            ))}
           </div>
+        </div>
 
-          {/* Room Details */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
-              Room Details
-            </h2>
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Bedrooms
-                </label>
-                <input
-                  type="number"
-                  name="bedroom"
-                  value={formData.bedroom}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Bathrooms
-                </label>
-                <input
-                  type="number"
-                  name="bathroom"
-                  value={formData.bathroom}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Kitchens
-                </label>
-                <input
-                  type="number"
-                  name="kitchen"
-                  value={formData.kitchen}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  min="0"
-                />
-              </div>
+        {/* Additional Information */}
+        <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+          <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+            Additional Information
+          </h2>
+          <div className="space-y-5">
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Full Address*
+              </label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                rows="2"
+                required
+              />
             </div>
-          </div>
 
-          {/* Additional Information */}
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
-              Additional Information
-            </h2>
-            <div className="space-y-5">
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Full Address*
-                </label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  rows="2"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
-                  Property Details
-                </label>
-                <textarea
-                  name="details"
-                  value={formData.details}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                  rows="3"
-                />
-              </div>
+            <div>
+              <label className="block mb-2 text-gray-800 font-semibold">
+                Property Details
+              </label>
+              <textarea
+                name="details"
+                value={formData.details}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                rows="3"
+              />
             </div>
           </div>
         </div>

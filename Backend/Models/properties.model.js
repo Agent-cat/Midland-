@@ -5,87 +5,82 @@ const propertySchema = new mongoose.Schema(
     name: { type: String, required: true },
     type: {
       type: String,
-      enum: [
-        "flats",
-        "houses",
-        "villas",
-        "shops",
-        "agriculture land",
-        "residential land",
-        "farmhouse",
-      ],
+      enum: ["flats", "houses", "villas", "shops", "agriculture land", "residential land", "farmhouse"],
       required: true,
     },
-    sqft: { type: Number, required: true },
     location: {
       type: String,
       enum: ["vijayawada", "amravathi", "guntur"],
       required: true,
     },
-    bhk: { type: Number, required: true },
-    isFavourite: { type: Boolean, default: false },
-    address: { type: String, required: true },
-    ownerName: { type: String, required: true },
-    saleOrRent: {
-      type: String,
-      enum: ["sale", "rent"],
-      required: true,
-    },
     price: { type: Number, required: true },
-    details: { type: String },
-    dimensions: { type: String },
-    images: { type: [String], default: [] },
-    overview: { type: String },
-    amenities: { type: [String], default: [] },
-    locationMap: { type: String },
-    bedroom: { type: Number, default: 0 },
-    bathroom: { type: Number, default: 0 },
-    kitchen: { type: Number, default: 0 },
-    isViewed: {
-      type: Boolean,
-      default: false,
-    },
-    views: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "PropertyView",
-      },
-    ],
+    address: { type: String, required: true },
     sellerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    sellerName: {
-      type: String,
-      required: true,
-    },
+    sellerName: { type: String, required: true },
     status: {
       type: String,
-      enum: ["available", "sold", "rented"],
-      default: "available"
+      enum: ["available", "sold", "rented", "pending"],
+      default: "pending"
     },
-    soldDate: {
-      type: Date
+    images: { type: [String], required: true },
+    videos: { type: [String], default: [] },
+    
+    // Optional fields based on property type
+    bhk: { 
+      type: Number, 
+      required: function() {
+        return ["flats", "houses", "villas", "farmhouse"].includes(this.type);
+      }
     },
-    isVerified: {
-      type: Boolean,
-      default: false
+    sqft: { 
+      type: Number,
+      required: function() {
+        return ["flats", "houses", "villas", "shops", "residential land"].includes(this.type);
+      }
     },
+    acres: {
+      type: Number,
+      required: function() {
+        return ["agriculture land", "farmhouse"].includes(this.type);
+      }
+    },
+    bedroom: { type: Number },
+    bathroom: { type: Number },
+    kitchen: { type: Number },
+    floors: { type: Number },
+    washroom: { type: Number },
+    soil_type: { 
+      type: String,
+      required: function() {
+        return this.type === "agriculture land";
+      }
+    },
+    water_source: { type: String },
+    facing: { type: String },
+    dimensions: { type: String },
+    amenities: { type: [String], default: [] },
+    overview: { type: String },
+    details: { type: String },
+    locationMap: { type: String },
+    isVerified: { type: Boolean, default: false },
     verificationNote: String,
     verifiedAt: Date,
     verifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
-    videos: [{
+    saleOrRent: {
       type: String,
-      required: false
-    }]
+      enum: ["sale", "rent"],
+      required: true
+    }
   },
   {
-    timestamps: true,
-    autoIndex: false,
+    timestamps: true
   }
 );
 
