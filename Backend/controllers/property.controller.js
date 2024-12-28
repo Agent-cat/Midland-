@@ -158,38 +158,39 @@ const getCart = asyncHandler(async (req, res) => {
   res.status(200).json(user.cart);
 });
 
-const recordPropertyView = async (req, res) => {
+const recordPropertyView = asyncHandler(async (req, res) => {
   try {
-    const { userId, propertyId, phoneNumber } = req.body;
+    const { userId, phone } = req.body;
+    const propertyId = req.params.id;
 
-    // Update user's recently viewed properties
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { recentlyViewed: propertyId },
+    // Check if user has viewed this property in the last hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const existingView = await PropertyView.findOne({
+      userId,
+      propertyId,
+      viewedAt: { $gt: oneHourAgo }
     });
 
-    // Create property view record
-    const view = await PropertyView.create({
-      user: userId,
-      property: propertyId,
-      phoneNumber,
-      status: "pending",
-      viewedAt: new Date(),
-    });
+    if (existingView) {
+      // Update existing view with new timestamp
+      existingView.viewedAt = new Date();
+      await existingView.save();
+    } else {
+      // Create new view record
+      await PropertyView.create({
+        userId,
+        propertyId,
+        phone,
+        viewedAt: new Date()
+      });
+    }
 
-    await view.populate("user", "username email");
-    await view.populate("property", "name location");
-
-    res.status(201).json({
-      message: "Property view recorded successfully",
-      view,
-    });
+    res.status(200).json({ message: "Property view recorded successfully" });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to record property view",
-      error: error.message,
-    });
+    console.error("Error recording property view:", error);
+    res.status(500).json({ message: "Error recording property view" });
   }
-};
+});
 
 module.exports = {
   postproperty,

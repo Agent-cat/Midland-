@@ -55,6 +55,8 @@ const PropertyDetails = ({ properties, loggedIn }) => {
   const [phoneError, setPhoneError] = useState("");
   const [showVideos, setShowVideos] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [lastPopupTime, setLastPopupTime] = useState(null);
+  const [savedPhoneNumber, setSavedPhoneNumber] = useState(null);
 
   useEffect(() => {
     const loadPropertyData = async () => {
@@ -99,8 +101,35 @@ const PropertyDetails = ({ properties, loggedIn }) => {
   }, [propertyData]);
 
   useEffect(() => {
+    const storedPopupTime = localStorage.getItem('lastPhonePopupTime');
+    const storedPhone = localStorage.getItem('savedPhoneNumber');
+    
+    if (storedPopupTime) {
+      setLastPopupTime(parseInt(storedPopupTime));
+    }
+    if (storedPhone) {
+      setSavedPhoneNumber(storedPhone);
+    }
+  }, []);
+
+  useEffect(() => {
     if (propertyData && loggedIn) {
-      setShowPhoneModal(true);
+      const storedPopupTime = localStorage.getItem('lastPhonePopupTime');
+      const storedPhone = localStorage.getItem('savedPhoneNumber');
+      const currentTime = Date.now();
+      const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+
+      // Initialize showPhoneModal as false by default
+      setShowPhoneModal(false);
+      
+      if (!storedPopupTime || (currentTime - parseInt(storedPopupTime)) > oneHour) {
+        // Show popup if no stored time or more than an hour has passed
+        setShowPhoneModal(true);
+        localStorage.setItem('lastPhonePopupTime', currentTime.toString());
+      } else if (storedPhone) {
+        // If within the hour and we have a stored phone, record the view silently
+        recordPropertyView(storedPhone);
+      }
     }
   }, [propertyData, loggedIn]);
 
@@ -112,6 +141,23 @@ const PropertyDetails = ({ properties, loggedIn }) => {
     });
   }, []);
 
+  const recordPropertyView = async (phone) => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      if (!userData) return;
+
+      await axios.post(
+        `http://localhost:4000/api/properties/${propertyData._id}/views`,
+        {
+          userId: userData._id,
+          phone: phone
+        }
+      );
+    } catch (error) {
+      console.error("Error recording property view:", error);
+    }
+  };
+
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     
@@ -122,16 +168,11 @@ const PropertyDetails = ({ properties, loggedIn }) => {
     }
 
     try {
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      if (!userData) return;
-
-      await axios.post(
-        `http://localhost:4000/api/properties/${propertyData._id}/views`,
-        {
-          userId: userData._id,
-          phone: userPhone
-        }
-      );
+      // Save phone number and current time
+      localStorage.setItem('savedPhoneNumber', userPhone);
+      localStorage.setItem('lastPhonePopupTime', Date.now().toString());
+      
+      await recordPropertyView(userPhone);
       
       setShowPhoneModal(false);
       setPhoneError("");
