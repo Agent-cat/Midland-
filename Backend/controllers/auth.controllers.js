@@ -1,12 +1,131 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../Models/user.model.js");
-
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const axios = require("axios");
 
+// Add this new function to generate OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Add this new function to send OTP
+const sendOTP = async (phone, otp) => {
+  try {
+    const response = await axios.get(
+      `https://2factor.in/API/V1/${process.env.TWO_FACTOR_API_KEY}/SMS/${phone}/${otp}/MIDLAND`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    throw new Error("Failed to send OTP");
+  }
+};
+
+// Add this new endpoint to send OTP
+const sendRegistrationOTP = asyncHandler(async (req, res) => {
+  const { phone } = req.body;
+
+  try {
+    // Validate phone number
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        error: "Phone number must be 10 digits",
+      });
+    }
+
+    // Check if phone number already exists
+    const phoneExist = await User.findOne({ phno: phone });
+    if (phoneExist) {
+      return res.status(409).json({
+        error: "Phone number already registered",
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    
+    // Store OTP in session/cache (you might want to use Redis in production)
+    // For now, we'll store it in memory
+    if (!global.otpStore) global.otpStore = new Map();
+    global.otpStore.set(phone, {
+      otp,
+      timestamp: Date.now(),
+      attempts: 0
+    });
+
+    // Send OTP
+    await sendOTP(phone, otp);
+
+    res.status(200).json({
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    console.error("Send OTP error:", error);
+    res.status(500).json({
+      error: "Failed to send OTP",
+      details: error.message,
+    });
+  }
+});
+
+// Add this new endpoint to verify OTP
+const verifyOTP = asyncHandler(async (req, res) => {
+  const { phone, otp } = req.body;
+
+  try {
+    if (!global.otpStore || !global.otpStore.has(phone)) {
+      return res.status(400).json({
+        error: "No OTP request found",
+      });
+    }
+
+    const otpData = global.otpStore.get(phone);
+    
+    // Check if OTP is expired (5 minutes)
+    if (Date.now() - otpData.timestamp > 5 * 60 * 1000) {
+      global.otpStore.delete(phone);
+      return res.status(400).json({
+        error: "OTP expired",
+      });
+    }
+
+    // Check if too many attempts
+    if (otpData.attempts >= 3) {
+      global.otpStore.delete(phone);
+      return res.status(400).json({
+        error: "Too many attempts. Please request new OTP",
+      });
+    }
+
+    // Verify OTP
+    if (otpData.otp !== otp) {
+      otpData.attempts++;
+      global.otpStore.set(phone, otpData);
+      return res.status(400).json({
+        error: "Invalid OTP",
+        attemptsLeft: 3 - otpData.attempts
+      });
+    }
+
+    // OTP verified successfully
+    global.otpStore.delete(phone);
+    res.status(200).json({
+      message: "OTP verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify OTP error:", error);
+    res.status(500).json({
+      error: "Failed to verify OTP",
+      details: error.message,
+    });
+  }
+});
+
+// Modify the existing signup function
 const signup = asyncHandler(async (req, res) => {
-  const { username, email, password, phno, role, isLoggedIn, profilePicture } =
-    req.body;
+  const { username, email, password, phno, role, isLoggedIn, profilePicture, otp } = req.body;
 
   try {
     // Input validation
@@ -73,6 +192,20 @@ const signup = asyncHandler(async (req, res) => {
       });
     }
 
+    // Verify OTP before creating user
+    if (!global.otpStore || !global.otpStore.has(phno)) {
+      return res.status(400).json({
+        error: "Please verify your phone number first",
+      });
+    }
+
+    const otpData = global.otpStore.get(phno);
+    if (otpData.otp !== otp) {
+      return res.status(400).json({
+        error: "Invalid OTP",
+      });
+    }
+
     // Create user
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -102,6 +235,10 @@ const signup = asyncHandler(async (req, res) => {
         token: token,
       });
     }
+
+    // Clear OTP data after successful signup
+    global.otpStore.delete(phno);
+
   } catch (error) {
     console.error("Signup error:", error);
 
@@ -210,4 +347,10 @@ const getusers = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { signup, signin, getusers };
+module.exports = { 
+  signup, 
+  signin, 
+  getusers, 
+  sendRegistrationOTP, 
+  verifyOTP 
+};

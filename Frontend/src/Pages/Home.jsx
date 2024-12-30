@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import video from "../assets/video1.mp4";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import Card from "../Components/Card";
 import { motion } from "framer-motion";
 import img1 from "../assets/midland2.png"
 import PropertyLoading from "../Components/PropertyLoading";
 
-const Home = () => {
+const Home = ({ cartCount }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [trendingProperties, setTrendingProperties] = useState([]);
 
@@ -35,6 +35,19 @@ const Home = () => {
         <PropertyLoading />
       ) : (
         <>
+          <div className="fixed bottom-4 right-4 md:hidden z-50">
+            <Link
+              to="/cart"
+              className="bg-red-500 p-3 rounded-full shadow-lg flex items-center justify-center relative"
+            >
+              <ShoppingCart className="text-white" size={24} />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-white text-red-500 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
           <div className="relative h-[100vh] w-full overflow-hidden">
             <video
               className="absolute top-0 left-0 w-full h-full object-cover scale-105 transform"
@@ -54,7 +67,7 @@ const Home = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="h-36 scale-150 md:h-80 mb-8"
+                className="h-36 scale-[2.5] lg:scale-150 md:h-80 mb-8"
               />
               <motion.p
                 initial={{ opacity: 0 }}

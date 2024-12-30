@@ -17,6 +17,7 @@ const App = () => {
   });
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cartCount, setCartCount] = useState(0);
 
   const fetchProperties = async () => {
     try {
@@ -54,6 +55,27 @@ const App = () => {
     return () => {
       lenis.destroy();
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      if (!userData) return;
+
+      try {
+        const response = await axios.get(
+          `http://localhost:4000/api/properties/cart/${userData._id}`
+        );
+        setCartCount(response.data.length);
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+      }
+    };
+
+    fetchCartCount();
+    const interval = setInterval(fetchCartCount, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Add scroll to top with smooth animation

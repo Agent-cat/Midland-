@@ -209,9 +209,19 @@ const Navbar = ({ data, setData, loggedIn, setLoggedIn }) => {
           )}
         </div>
 
-        <button onClick={toggleMenu} className="md:hidden mr-4">
-          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="md:hidden flex items-center gap-4 mr-4">
+          {loggedIn && (
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="flex items-center gap-2 text-gray-700 rounded-md transition-colors duration-300"
+            >
+              <ShoppingCart color="red" size={24} />
+            </button>
+          )}
+          <button onClick={toggleMenu}>
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
 
       <div
