@@ -18,6 +18,7 @@ const App = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cartCount, setCartCount] = useState(0);
+  const [lenis, setLenis] = useState(null);
 
   const fetchProperties = async () => {
     try {
@@ -33,7 +34,7 @@ const App = () => {
   useEffect(() => {
     fetchProperties();
 
-    const lenis = new Lenis({
+    const lenisInstance = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: "vertical",
@@ -45,15 +46,17 @@ const App = () => {
       infinite: false,
     });
 
+    setLenis(lenisInstance);
+
     function raf(time) {
-      lenis.raf(time);
+      lenisInstance.raf(time);
       requestAnimationFrame(raf);
     }
 
     requestAnimationFrame(raf);
 
     return () => {
-      lenis.destroy();
+      lenisInstance.destroy();
     };
   }, []);
 
@@ -78,9 +81,10 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Add scroll to top with smooth animation
   const scrollToTop = () => {
-    lenis.scrollTo(0, { duration: 1.5 });
+    if (lenis) {
+      lenis.scrollTo(0, { duration: 1.5 });
+    }
   };
 
   return (
