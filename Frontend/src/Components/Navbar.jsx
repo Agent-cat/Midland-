@@ -112,18 +112,18 @@ const Navbar = ({ data, setData, loggedIn, setLoggedIn }) => {
     <>
       <nav
         ref={navbarRef}
-        className={`flex py-6 cursor-auto md:py-0 select-none rounded-2xl m-2 font-semibold bg-[#d5dbde] text-md font-['Onest',sans-serif] justify-between items-center fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+        className={`flex py-6 cursor-auto lg:py-0 select-none rounded-2xl m-2 font-semibold bg-[#d5dbde] text-md font-['Onest',sans-serif] justify-between items-center fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
           visible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <Link
           to="/"
-          className="md:ml-4 flex gap-2 text-red-400 ml-8 md:text-gray-700 text-2xl font-bold"
+          className="lg:ml-4 flex gap-2 text-red-400 ml-8 lg:text-gray-700 text-2xl font-bold"
         >
           Midland
-          <span className="text-red-400  hidden md:flex">Real-Estate</span>
+          <span className="text-red-400 hidden lg:flex">Real-Estate</span>
         </Link>
-        <div className="hidden md:flex gap-8 relative nav-links">
+        <div className="hidden lg:flex gap-8 relative nav-links">
           {filteredNavlinks.map((link, index) => (
             <NavLink
               key={index}
@@ -139,7 +139,7 @@ const Navbar = ({ data, setData, loggedIn, setLoggedIn }) => {
           ))}
           <div className="absolute bottom-0 h-0.5 bg-red-500 nav-underline" />
         </div>
-        <div className="hidden md:flex mt-2 h-full mr-9 gap-4">
+        <div className="hidden lg:flex mt-2 h-full mr-9 gap-4">
           {loggedIn && (
             <button
               onClick={() => setIsCartOpen(true)}
@@ -209,7 +209,7 @@ const Navbar = ({ data, setData, loggedIn, setLoggedIn }) => {
           )}
         </div>
 
-        <div className="md:hidden flex items-center gap-4 mr-4">
+        <div className="lg:hidden flex items-center gap-4 mr-4">
           {loggedIn && (
             <button
               onClick={() => setIsCartOpen(true)}

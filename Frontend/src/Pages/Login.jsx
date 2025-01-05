@@ -3,26 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-
-const Toast = ({ message, type }) => {
-  useGSAP(() => {
-    gsap.fromTo(
-      ".toast-animation",
-      { opacity: 0, y: -50 },
-      { opacity: 1, y: 0, duration: 0.5 }
-    );
-  }, []);
-
-  return (
-    <div
-      className={`fixed top-4 right-4 z-50 flex items-center p-4 rounded-lg shadow-lg ${
-        type === "success" ? "bg-red-400" : "bg-red-500"
-      } text-white toast-animation`}
-    >
-      <p>{message}</p>
-    </div>
-  );
-};
+import Toast from "../Components/Toast";
 
 const Login = ({ data, setData, setLoggedIn }) => {
   const navigate = useNavigate();
@@ -31,7 +12,7 @@ const Login = ({ data, setData, setLoggedIn }) => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
 
-  const showToast = (message, type) => {
+  const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast({ show: false, message: "", type: "" });
@@ -78,7 +59,7 @@ const Login = ({ data, setData, setLoggedIn }) => {
       localStorage.setItem("userData", JSON.stringify(response));
       setData(response);
       setLoggedIn(true);
-      showToast("Login successful", "success");
+      showToast("You have successfully logged in", "success");
       navigate("/");
     } catch (error) {
       const errorMessage = error.response?.data?.error || "Login failed";
@@ -91,7 +72,13 @@ const Login = ({ data, setData, setLoggedIn }) => {
 
   return (
     <div className="flex items-center justify-center bg-gray-100">
-      {toast.show && <Toast message={toast.message} type={toast.type} />}
+      {toast.show && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast({ show: false, message: "", type: "" })}
+        />
+      )}
       <div className="p-8 rounded-xl shadow-md w-full max-w-md">
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
           Login
