@@ -10,11 +10,12 @@ const generateOTP = () => {
 };
 
 // Add this new function to send OTP
-const sendOTP = async (phone, otp) => {
+const sendOTP = async (phone) => {
   try {
     const response = await axios.get(
-      `https://2factor.in/API/V1/${process.env.TWO_FACTOR_API_KEY}/SMS/${phone}/${otp}/MIDLAND`
+      `https://2factor.in/API/V1/${process.env.TWO_FACTOR_API_KEY}/SMS/${phone}/AUTOGEN/OTP1`
     );
+
     return response.data;
   } catch (error) {
     console.error("Error sending OTP:", error);
@@ -43,20 +44,16 @@ const sendRegistrationOTP = asyncHandler(async (req, res) => {
       });
     }
 
-    // Generate OTP
-    const otp = generateOTP();
-    
-    // Store OTP in session/cache (you might want to use Redis in production)
-    // For now, we'll store it in memory
+    // Send OTP using 2Factor API
+    const response = await sendOTP(phone);
+
+    // Store session ID in memory
     if (!global.otpStore) global.otpStore = new Map();
     global.otpStore.set(phone, {
-      otp,
+      sessionId: response.Details,
       timestamp: Date.now(),
-      attempts: 0
+      attempts: 0,
     });
-
-    // Send OTP
-    await sendOTP(phone, otp);
 
     res.status(200).json({
       message: "OTP sent successfully",
@@ -82,7 +79,7 @@ const verifyOTP = asyncHandler(async (req, res) => {
     }
 
     const otpData = global.otpStore.get(phone);
-    
+
     // Check if OTP is expired (5 minutes)
     if (Date.now() - otpData.timestamp > 5 * 60 * 1000) {
       global.otpStore.delete(phone);
@@ -99,21 +96,30 @@ const verifyOTP = asyncHandler(async (req, res) => {
       });
     }
 
-    // Verify OTP
-    if (otpData.otp !== otp) {
+    try {
+      // Verify OTP using 2Factor API
+      const verifyResponse = await axios.get(
+        `https://2factor.in/API/V1/${process.env.TWO_FACTOR_API_KEY}/SMS/VERIFY/${otpData.sessionId}/${otp}`
+      );
+
+      if (verifyResponse.data.Status === "Success") {
+        // Mark as verified but don't delete the data yet
+        otpData.verified = true;
+        global.otpStore.set(phone, otpData);
+
+        return res.status(200).json({
+          message: "OTP verified successfully",
+        });
+      }
+    } catch (error) {
+      // Invalid OTP
       otpData.attempts++;
       global.otpStore.set(phone, otpData);
       return res.status(400).json({
         error: "Invalid OTP",
-        attemptsLeft: 3 - otpData.attempts
+        attemptsLeft: 3 - otpData.attempts,
       });
     }
-
-    // OTP verified successfully
-    global.otpStore.delete(phone);
-    res.status(200).json({
-      message: "OTP verified successfully",
-    });
   } catch (error) {
     console.error("Verify OTP error:", error);
     res.status(500).json({
@@ -125,7 +131,16 @@ const verifyOTP = asyncHandler(async (req, res) => {
 
 // Modify the existing signup function
 const signup = asyncHandler(async (req, res) => {
-  const { username, email, password, phno, role, isLoggedIn, profilePicture, otp } = req.body;
+  const {
+    username,
+    email,
+    password,
+    phno,
+    role,
+    isLoggedIn,
+    profilePicture,
+    otp,
+  } = req.body;
 
   try {
     // Input validation
@@ -200,9 +215,9 @@ const signup = asyncHandler(async (req, res) => {
     }
 
     const otpData = global.otpStore.get(phno);
-    if (otpData.otp !== otp) {
+    if (!otpData.verified) {
       return res.status(400).json({
-        error: "Invalid OTP",
+        error: "Please verify your phone number first",
       });
     }
 
@@ -238,7 +253,6 @@ const signup = asyncHandler(async (req, res) => {
 
     // Clear OTP data after successful signup
     global.otpStore.delete(phno);
-
   } catch (error) {
     console.error("Signup error:", error);
 
@@ -347,10 +361,10 @@ const getusers = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { 
-  signup, 
-  signin, 
-  getusers, 
-  sendRegistrationOTP, 
-  verifyOTP 
+module.exports = {
+  signup,
+  signin,
+  getusers,
+  sendRegistrationOTP,
+  verifyOTP,
 };

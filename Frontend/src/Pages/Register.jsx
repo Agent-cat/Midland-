@@ -135,7 +135,7 @@ const Register = () => {
 
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:4000/api/auth/send-otp",
+        "https://api.midlandrealestateservices.com/api/auth/send-otp",
         { phone: phno }
       );
       
@@ -152,13 +152,15 @@ const Register = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:4000/api/auth/verify-otp",
+        "https://api.midlandrealestateservices.com/api/auth/verify-otp",
         { phone: phno, otp }
       );
       
       setOtpVerified(true);
+      setOtpError("");
       showToast("Phone number verified successfully", "success");
     } catch (error) {
+      setOtpVerified(false);
       setOtpError(error.response?.data?.error || "Failed to verify OTP");
       showToast(error.response?.data?.error || "Failed to verify OTP", "error");
     } finally {
@@ -178,44 +180,26 @@ const Register = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:4000/api/auth/signup",
+        "https://api.midlandrealestateservices.com/api/auth/signup",
         {
           username,
           email,
           password,
           phno,
-          profilePicture,
-          otp
+          profilePicture
         }
       );
 
       setShowSuccessModal(true);
     } catch (error) {
-      // Get the error message from the response
-      const errorResponse = error.response?.data;
-      let errorMessage = "Registration failed";
-
-      if (errorResponse?.error) {
-        errorMessage = errorResponse.error;
-
-        // Handle specific field errors
-        if (errorResponse.field) {
-          switch (errorResponse.field) {
-            case "username":
-              setUsername(""); // Clear username field
-              break;
-            case "email":
-              setEmail(""); // Clear email field
-              break;
-            case "phno":
-              setPhno(""); // Clear phone number field
-              break;
-          }
-        }
-      }
-
+      const errorMessage = error.response?.data?.error || "Registration failed";
       showToast(errorMessage, "error");
-      console.error("Registration error:", errorResponse || error.message);
+      
+      // If the error is about phone verification, reset the verification state
+      if (errorMessage.includes("verify your phone")) {
+        setOtpVerified(false);
+        setOtpSent(false);
+      }
     } finally {
       setLoading(false);
     }
