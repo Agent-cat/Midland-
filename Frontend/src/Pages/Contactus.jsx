@@ -25,7 +25,7 @@ const ContactUs = () => {
         return;
       }
 
-      await axios.post("http://localhost:4000/api/feedback", {
+      await axios.post("https://api.midlandrealestateservices.com/api/feedback", {
         username: userData._id,
         subject: formData.subject,
         message: formData.message,
