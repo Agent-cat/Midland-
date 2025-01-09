@@ -102,20 +102,20 @@ const Register = () => {
       return false;
     }
 
-    // Email validation
+    
     const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
     if (!emailRegex.test(email)) {
       showToast("Please enter a valid email address", "error");
       return false;
     }
 
-    // Password validation
+    
     if (password.length < 6) {
       showToast("Password must be at least 6 characters long", "error");
       return false;
     }
 
-    // Phone validation
+    
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(phno)) {
       showToast("Phone number must be 10 digits", "error");
@@ -195,7 +195,7 @@ const Register = () => {
       const errorMessage = error.response?.data?.error || "Registration failed";
       showToast(errorMessage, "error");
       
-      // If the error is about phone verification, reset the verification state
+     
       if (errorMessage.includes("verify your phone")) {
         setOtpVerified(false);
         setOtpSent(false);
