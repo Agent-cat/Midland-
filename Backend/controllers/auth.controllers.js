@@ -4,12 +4,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
-// Add this new function to generate OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Add this new function to send OTP
 const sendOTP = async (phone) => {
   try {
     const response = await axios.get(

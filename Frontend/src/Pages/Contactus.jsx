@@ -70,7 +70,7 @@ const ContactUs = () => {
         >
           <div className="md:grid md:grid-cols-5">
             <div className="bg-gradient-to-br from-red-600 to-red-500 text-white p-12 md:col-span-2">
-              <h2 className="text-4xl font-bold mb-8 font-serif">Contact Us</h2>
+              <h2 className="text-4xl font-bold mb-8 font-serif">About Us</h2>
               <div className="space-y-8">
                 <p className="text-white/90 text-lg leading-relaxed">
                   We provide all types of professional real estate services for our costumers. Get your customized solutions at Our office: Lohithya Towers, Nirmala Convent road, Vijayawada 520010.
@@ -109,7 +109,7 @@ const ContactUs = () => {
             </div>
 
             <div className="p-12 md:col-span-3">
-              <h3 className="text-3xl font-bold text-gray-800 mb-8 font-serif">Send us a Message</h3>
+              <h3 className="text-3xl font-bold text-gray-800 mb-8 font-serif">Send us a Feedback</h3>
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -156,7 +156,7 @@ const ContactUs = () => {
                   ) : (
                     <div className="flex items-center space-x-3">
                       <Send size={20} />
-                      <span>Send Message</span>
+                      <span>Send Feedback</span>
                     </div>
                   )}
                 </button>

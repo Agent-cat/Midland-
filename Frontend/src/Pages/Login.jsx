@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
+
 import Toast from "../Components/Toast";
 
 const Login = ({ data, setData, setLoggedIn }) => {
@@ -51,7 +50,7 @@ const Login = ({ data, setData, setLoggedIn }) => {
 
       const { data: response } = await axios.post(
         "http://localhost:4000/api/auth/signin",
-        { email, password },
+        { email:email, password:password },
         config
       );
 
