@@ -6,35 +6,31 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const propertyTypeConfig = {
   flats: {
-    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft'],
+    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen'],
     details: ['lift', 'parking', 'security', 'swimming_pool', 'gym'],
     amenities: ['24/7 Water', 'Power Backup', 'CCTV', 'Fire Safety', 'Club House','Parking','Lifts','Store Room','Pooja Room','Gym']
   },
   houses: {
-    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'floors'],
+    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'floors'],
     details: ['parking', 'garden', 'security'],
     amenities: ['24/7 Water', 'Power Backup', 'Rain Water Harvesting', 'Solar Panels','Parking','Lifts','Store Room','Pooja Room','Gym']
   },
   villas: {
-    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'garden_area'],
+    fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'garden_area'],
     details: ['swimming_pool', 'parking', 'garden', 'security'],
     amenities: ['24/7 Water', 'Power Backup', 'Club House', 'Garden','Parking','Lifts','Store Room','Pooja Room','Gym']
   },
   shops: {
-    fields: ['sqft', 'floors', 'washroom'],
+    fields: ['floors', 'washroom'],
     details: ['parking', 'storage', 'security'],
     amenities: ['24/7 Water', 'Power Backup', 'CCTV', 'Fire Safety']
   },
-  'agriculture land': {
+  'Land': {
     fields: ['acres', 'soil_type', 'water_source'],
     details: ['road_access', 'electricity', 'boundary'],
     amenities: ['Bore Well', 'Canal Water', 'Farm House']
   },
-  'residential land': {
-    fields: ['sqft', 'dimensions', 'facing'],
-    details: ['road_access', 'boundary'],
-    amenities: ['Water Connection', 'Electricity', 'Road Access']
-  },
+  
   farmhouse: {
     fields: ['acres', 'bhk', 'bedroom', 'bathroom', 'kitchen'],
     details: ['garden', 'farming_area', 'water_source'],
@@ -51,10 +47,14 @@ const Sell = ({ refreshProperties }) => {
     type: "flats",
     location: "vijayawada",
     saleOrRent: "sale",
+    propertyCategory: "residential",
     price: "",
     address: "",
     bhk: "",
-    sqft: "",
+    area: {
+      value: "",
+      unit: "sq.yard"
+    },
     acres: "",
     bedroom: "",
     bathroom: "",
@@ -108,15 +108,28 @@ const Sell = ({ refreshProperties }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const validation = validateField(name, value);
-
-    if (validation === true) {
+    
+    if (name.includes('.')) {
+      // Handle nested object updates (for area)
+      const [parent, child] = name.split('.');
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
       }));
     } else {
-      showAlert(validation, 'error');
+      const validation = validateField(name, value);
+
+      if (validation === true) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      } else {
+        showAlert(validation, 'error');
+      }
     }
   };
 
@@ -316,7 +329,7 @@ const Sell = ({ refreshProperties }) => {
       };
 
       // Convert numeric fields
-      ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'acres', 'floors', 'washroom'].forEach(field => {
+      ['bhk', 'bedroom', 'bathroom', 'kitchen', 'acres', 'floors', 'washroom'].forEach(field => {
         if (propertyData[field]) {
           propertyData[field] = Number(propertyData[field]);
         }
@@ -356,7 +369,6 @@ const Sell = ({ refreshProperties }) => {
     switch (name) {
       case 'price':
         return value > 0 ? true : 'Price must be greater than 0';
-      case 'sqft':
       case 'acres':
         return value > 0 ? true : 'Area must be greater than 0';
       case 'phone':
@@ -392,7 +404,7 @@ const Sell = ({ refreshProperties }) => {
               </select>
             ) : (
               <input
-                type={field === 'sqft' || field === 'acres' ? 'number' : 'text'}
+                type={field === 'acres' ? 'number' : 'text'}
                 name={field}
                 value={formData[field] || ''}
                 onChange={handleInputChange}
@@ -422,8 +434,6 @@ const Sell = ({ refreshProperties }) => {
 
   const getPlaceholderForField = (field) => {
     switch (field) {
-      case 'sqft':
-        return 'Enter area in square feet';
       case 'acres':
         return 'Enter area in acres';
       case 'dimensions':
@@ -432,6 +442,90 @@ const Sell = ({ refreshProperties }) => {
         return `Enter ${field.split('_').join(' ')}`;
     }
   };
+
+  const renderPropertyDetails = () => (
+    <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+      <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+        Property Details
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Area Input with Unit Selection */}
+        <div className="flex space-x-2">
+          <div className="flex-1">
+            <label className="block mb-2 text-gray-800 font-semibold">
+              Area*
+            </label>
+            <div className="flex">
+              <input
+                type="number"
+                name="area.value"
+                value={formData.area.value}
+                onChange={handleInputChange}
+                className="w-2/3 p-2 border-2 rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                placeholder="Enter area"
+                required
+              />
+              <select
+                name="area.unit"
+                value={formData.area.unit}
+                onChange={handleInputChange}
+                className="w-1/3 p-2 border-2 border-l-0 rounded-r-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              >
+                <option value="sq.yard">Sq. Yard</option>
+                <option value="sq.m">Sq. Meter</option>
+                <option value="acres">Acres</option>
+                <option value="marla">Marla</option>
+                <option value="cents">Cents</option>
+                <option value="bigha">Bigha</option>
+                <option value="kottah">Kottah</option>
+                <option value="kanal">Kanal</option>
+                <option value="grounds">Grounds</option>
+                <option value="ares">Ares</option>
+                <option value="biswa">Biswa</option>
+                <option value="guntha">Guntha</option>
+                <option value="aankadam">Aankadam</option>
+                <option value="hectares">Hectares</option>
+                <option value="rood">Rood</option>
+                <option value="chataks">Chataks</option>
+                <option value="perch">Perch</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        {propertyTypeConfig[formData.type]?.fields.map((field) => (
+          <div key={field}>
+            <label className="block mb-2 text-gray-800 font-semibold">
+              {field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}*
+            </label>
+            {field === 'soil_type' || field === 'water_source' || field === 'facing' ? (
+              <select
+                name={field}
+                value={formData[field] || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+              >
+                {getOptionsForField(field).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type={field === 'acres' ? 'number' : 'text'}
+                name={field}
+                value={formData[field] || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                required
+                placeholder={getPlaceholderForField(field)}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const pageVariants = {
     initial: { opacity: 0, x: -20 },
@@ -577,16 +671,18 @@ const Sell = ({ refreshProperties }) => {
 
               <div>
                 <label className="block mb-2 text-gray-800 font-semibold">
-                  Square Feet*
+                  Property Category*
                 </label>
-                <input
-                  type="number"
-                  name="sqft"
-                  value={formData.sqft}
+                <select
+                  name="propertyCategory"
+                  value={formData.propertyCategory}
                   onChange={handleInputChange}
                   className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                   required
-                />
+                >
+                  <option value="residential">Residential</option>
+                  <option value="commercial">Commercial</option>
+                </select>
               </div>
 
               <div>
@@ -611,11 +707,8 @@ const Sell = ({ refreshProperties }) => {
 
       case 2:
         return (
-          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
-              Property Details
-            </h2>
-            {renderPropertyFields()}
+          <div>
+            {renderPropertyDetails()}
           </div>
         );
 

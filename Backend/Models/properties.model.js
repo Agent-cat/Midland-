@@ -36,16 +36,19 @@ const propertySchema = new mongoose.Schema(
         return ["flats", "houses", "villas", "farmhouse"].includes(this.type);
       }
     },
-    sqft: { 
-      type: Number,
-      required: function() {
-        return ["flats", "houses", "villas", "shops", "residential land"].includes(this.type);
-      }
-    },
-    acres: {
-      type: Number,
-      required: function() {
-        return ["agriculture land", "farmhouse"].includes(this.type);
+    area: {
+      value: {
+        type: Number,
+        required: function() {
+          return ["agriculture land", "farmhouse", "residential land"].includes(this.type);
+        }
+      },
+      unit: {
+        type: String,
+        enum: ["sq.yard", "sq.m", "acres", "marla", "cents", "bigha", "kottah", "kanal", "grounds", "ares", "biswa", "guntha", "aankadam", "hectares", "rood", "chataks", "perch"],
+        required: function() {
+          return ["agriculture land", "farmhouse", "residential land"].includes(this.type);
+        }
       }
     },
     bedroom: { type: Number },
@@ -77,7 +80,12 @@ const propertySchema = new mongoose.Schema(
       type: String,
       enum: ["sale", "rent"],
       required: true
-    }
+    },
+    propertyCategory: {
+      type: String,
+      enum: ["residential", "commercial"],
+      required: true
+    },
   },
   {
     timestamps: true
@@ -91,7 +99,7 @@ propertySchema.pre("save", async function (next) {
     }
 
     if (!this.dimensions) {
-      this.dimensions = `${this.sqft} sq.ft`;
+      this.dimensions = `${this.bhk} BHK`;
     }
     next();
   } catch (error) {
