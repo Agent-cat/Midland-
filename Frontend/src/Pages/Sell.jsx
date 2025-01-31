@@ -8,17 +8,17 @@ const propertyTypeConfig = {
   flats: {
     fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft'],
     details: ['lift', 'parking', 'security', 'swimming_pool', 'gym'],
-    amenities: ['24/7 Water', 'Power Backup', 'CCTV', 'Fire Safety', 'Club House']
+    amenities: ['24/7 Water', 'Power Backup', 'CCTV', 'Fire Safety', 'Club House','Parking','Lifts','Store Room','Pooja Room','Gym']
   },
   houses: {
     fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'floors'],
     details: ['parking', 'garden', 'security'],
-    amenities: ['24/7 Water', 'Power Backup', 'Rain Water Harvesting', 'Solar Panels']
+    amenities: ['24/7 Water', 'Power Backup', 'Rain Water Harvesting', 'Solar Panels','Parking','Lifts','Store Room','Pooja Room','Gym']
   },
   villas: {
     fields: ['bhk', 'bedroom', 'bathroom', 'kitchen', 'sqft', 'garden_area'],
     details: ['swimming_pool', 'parking', 'garden', 'security'],
-    amenities: ['24/7 Water', 'Power Backup', 'Club House', 'Garden']
+    amenities: ['24/7 Water', 'Power Backup', 'Club House', 'Garden','Parking','Lifts','Store Room','Pooja Room','Gym']
   },
   shops: {
     fields: ['sqft', 'floors', 'washroom'],
