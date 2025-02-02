@@ -64,7 +64,49 @@ const propertySchema = new mongoose.Schema(
     },
     water_source: { type: String },
     facing: { type: String },
-    dimensions: { type: String },
+    dimensions: {
+      length: { type: Number },
+      width: { type: Number },
+      unit: {
+        type: String,
+        enum: ["feet", "meters"],
+        default: "feet"
+      }
+    },
+    carpetArea: {
+      value: { type: Number },
+      unit: {
+        type: String,
+        enum: ["sq.ft", "sq.yard", "sq.m"],
+        default: "sq.ft"
+      }
+    },
+    builtUpArea: {
+      value: { type: Number },
+      unit: {
+        type: String,
+        enum: ["sq.ft", "sq.yard", "sq.m"],
+        default: "sq.ft"
+      }
+    },
+    furnishingStatus: {
+      type: String,
+      enum: ["furnished", "unfurnished", "semi-furnished"],
+      required: function() {
+        return ["flats", "houses", "villas", "shops"].includes(this.type);
+      }
+    },
+    flooring: {
+      type: String,
+      enum: ["tiled", "marbled"],
+      required: function() {
+        return ["flats", "houses", "villas", "shops"].includes(this.type);
+      }
+    },
+    hasBoundaryWall: {
+      type: Boolean,
+      default: false
+    },
     amenities: { type: [String], default: [] },
     overview: { type: String },
     details: { type: String },
