@@ -390,10 +390,28 @@ const PropertyDetails = ({ properties, loggedIn }) => {
                 <span>{propertyData.kitchen} Kitchen</span>
               </div>
             )}
-            {propertyData.sqft && (
+            {propertyData.carpetArea?.value && (
               <div className="flex items-center">
                 <Maximize className="mr-2 text-red-600" />
-                <span>{propertyData.sqft} sq.ft</span>
+                <span>Carpet Area: {propertyData.carpetArea.value} {propertyData.carpetArea.unit}</span>
+              </div>
+            )}
+            {propertyData.builtUpArea?.value && (
+              <div className="flex items-center">
+                <Maximize className="mr-2 text-red-600" />
+                <span>Built-up Area: {propertyData.builtUpArea.value} {propertyData.builtUpArea.unit}</span>
+              </div>
+            )}
+            {propertyData.furnishingStatus && (
+              <div className="flex items-center">
+                <Home className="mr-2 text-red-600" />
+                <span>Furnishing: {propertyData.furnishingStatus}</span>
+              </div>
+            )}
+            {propertyData.flooring && (
+              <div className="flex items-center">
+                <Layers className="mr-2 text-red-600" />
+                <span>Flooring: {propertyData.flooring}</span>
               </div>
             )}
           </div>
@@ -402,10 +420,16 @@ const PropertyDetails = ({ properties, loggedIn }) => {
       case 'shops':
         return (
           <div className="flex flex-wrap gap-6">
-            {propertyData.sqft && (
+            {propertyData.carpetArea?.value && (
               <div className="flex items-center">
                 <Maximize className="mr-2 text-red-600" />
-                <span>{propertyData.sqft} sq.ft</span>
+                <span>Carpet Area: {propertyData.carpetArea.value} {propertyData.carpetArea.unit}</span>
+              </div>
+            )}
+            {propertyData.builtUpArea?.value && (
+              <div className="flex items-center">
+                <Maximize className="mr-2 text-red-600" />
+                <span>Built-up Area: {propertyData.builtUpArea.value} {propertyData.builtUpArea.unit}</span>
               </div>
             )}
             {propertyData.floors && (
@@ -420,16 +444,28 @@ const PropertyDetails = ({ properties, loggedIn }) => {
                 <span>{propertyData.washroom} Washroom(s)</span>
               </div>
             )}
+            {propertyData.furnishingStatus && (
+              <div className="flex items-center">
+                <Home className="mr-2 text-red-600" />
+                <span>Furnishing: {propertyData.furnishingStatus}</span>
+              </div>
+            )}
+            {propertyData.flooring && (
+              <div className="flex items-center">
+                <Layers className="mr-2 text-red-600" />
+                <span>Flooring: {propertyData.flooring}</span>
+              </div>
+            )}
           </div>
         );
 
       case 'agriculture land':
         return (
           <div className="flex flex-wrap gap-6">
-            {propertyData.acres && (
+            {propertyData.area?.value && (
               <div className="flex items-center">
                 <Trees className="mr-2 text-red-600" />
-                <span>{propertyData.acres} Acres</span>
+                <span>{propertyData.area.value} {propertyData.area.unit}</span>
               </div>
             )}
             {propertyData.soil_type && (
@@ -444,22 +480,34 @@ const PropertyDetails = ({ properties, loggedIn }) => {
                 <span>Water: {propertyData.water_source}</span>
               </div>
             )}
+            {propertyData.dimensions?.length && propertyData.dimensions?.width && (
+              <div className="flex items-center">
+                <Ruler className="mr-2 text-red-600" />
+                <span>Dimensions: {propertyData.dimensions.length} x {propertyData.dimensions.width} {propertyData.dimensions.unit}</span>
+              </div>
+            )}
+            {propertyData.hasBoundaryWall && (
+              <div className="flex items-center">
+                <Building2 className="mr-2 text-red-600" />
+                <span>Has Boundary Wall</span>
+              </div>
+            )}
           </div>
         );
 
       case 'residential land':
         return (
           <div className="flex flex-wrap gap-6">
-            {propertyData.sqft && (
+            {propertyData.area?.value && (
               <div className="flex items-center">
                 <Maximize className="mr-2 text-red-600" />
-                <span>{propertyData.sqft} sq.ft</span>
+                <span>{propertyData.area.value} {propertyData.area.unit}</span>
               </div>
             )}
-            {propertyData.dimensions && (
+            {propertyData.dimensions?.length && propertyData.dimensions?.width && (
               <div className="flex items-center">
                 <Ruler className="mr-2 text-red-600" />
-                <span>Size: {propertyData.dimensions}</span>
+                <span>Dimensions: {propertyData.dimensions.length} x {propertyData.dimensions.width} {propertyData.dimensions.unit}</span>
               </div>
             )}
             {propertyData.facing && (
@@ -468,16 +516,28 @@ const PropertyDetails = ({ properties, loggedIn }) => {
                 <span>Facing: {propertyData.facing}</span>
               </div>
             )}
+            {propertyData.hasBoundaryWall && (
+              <div className="flex items-center">
+                <Building2 className="mr-2 text-red-600" />
+                <span>Has Boundary Wall</span>
+              </div>
+            )}
           </div>
         );
 
       case 'farmhouse':
         return (
           <div className="flex flex-wrap gap-6">
-            {propertyData.acres && (
+            {propertyData.area?.value && (
               <div className="flex items-center">
                 <Trees className="mr-2 text-red-600" />
-                <span>{propertyData.acres} Acres</span>
+                <span>{propertyData.area.value} {propertyData.area.unit}</span>
+              </div>
+            )}
+            {propertyData.bhk && (
+              <div className="flex items-center">
+                <Home className="mr-2 text-red-600" />
+                <span>{propertyData.bhk} BHK</span>
               </div>
             )}
             {propertyData.bedroom && (
@@ -496,6 +556,24 @@ const PropertyDetails = ({ properties, loggedIn }) => {
               <div className="flex items-center">
                 <ChefHat className="mr-2 text-red-600" />
                 <span>{propertyData.kitchen} Kitchen</span>
+              </div>
+            )}
+            {propertyData.water_source && (
+              <div className="flex items-center">
+                <Droplets className="mr-2 text-red-600" />
+                <span>Water: {propertyData.water_source}</span>
+              </div>
+            )}
+            {propertyData.dimensions?.length && propertyData.dimensions?.width && (
+              <div className="flex items-center">
+                <Ruler className="mr-2 text-red-600" />
+                <span>Dimensions: {propertyData.dimensions.length} x {propertyData.dimensions.width} {propertyData.dimensions.unit}</span>
+              </div>
+            )}
+            {propertyData.hasBoundaryWall && (
+              <div className="flex items-center">
+                <Building2 className="mr-2 text-red-600" />
+                <span>Has Boundary Wall</span>
               </div>
             )}
           </div>
