@@ -502,24 +502,24 @@ const Sell = ({ refreshProperties }) => {
     const showBuildingFields = ["flats", "houses", "villas", "shops"].includes(formData.type);
 
     return (
-      <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-        <h2 className="text-2xl font-bold mb-6 text-red-600 border-b-2 border-red-200 pb-2">
+      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-red-600 border-b-2 border-red-200 pb-2">
           Property Details
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
           {/* Area Input with Unit Selection */}
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row sm:space-x-2">
             <div className="flex-1">
-              <label className="block mb-2 text-gray-800 font-semibold">
+              <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                 Area*
               </label>
-              <div className="flex">
+              <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
                 <input
                   type="number"
                   name="area.value"
                   value={formData?.area?.value || ""}
                   onChange={handleInputChange}
-                  className="w-2/3 p-2 border-2 rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                  className="w-full sm:w-2/3 p-2 border-2 rounded-lg sm:rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                   placeholder="Enter area"
                   required
                 />
@@ -527,7 +527,7 @@ const Sell = ({ refreshProperties }) => {
                   name="area.unit"
                   value={formData?.area?.unit || "sq.yard"}
                   onChange={handleInputChange}
-                  className="w-1/3 p-2 border-2 border-l-0 rounded-r-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                  className="w-full sm:w-1/3 p-2 border-2 rounded-lg sm:rounded-l-none focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                   required
                 >
                   <option value="sq.yard">Sq. Yard</option>
@@ -556,35 +556,37 @@ const Sell = ({ refreshProperties }) => {
           {showBuildingFields && (
             <>
               {/* Dimensions */}
-              <div className="col-span-2">
-                <label className="block mb-2 text-gray-800 font-semibold">
+              <div className="w-full">
+                <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                   Dimensions (Length x Width)*
                 </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    name="dimensions.length"
-                    value={formData?.dimensions?.length || ""}
-                    onChange={handleInputChange}
-                    placeholder="Length"
-                    className="w-1/3 p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                    required
-                  />
-                  <span className="flex items-center">×</span>
-                  <input
-                    type="number"
-                    name="dimensions.width"
-                    value={formData?.dimensions?.width || ""}
-                    onChange={handleInputChange}
-                    placeholder="Width"
-                    className="w-1/3 p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
-                    required
-                  />
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  <div className="flex-1 flex items-center space-x-2">
+                    <input
+                      type="number"
+                      name="dimensions.length"
+                      value={formData?.dimensions?.length || ""}
+                      onChange={handleInputChange}
+                      placeholder="Length"
+                      className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                      required
+                    />
+                    <span className="text-gray-500">×</span>
+                    <input
+                      type="number"
+                      name="dimensions.width"
+                      value={formData?.dimensions?.width || ""}
+                      onChange={handleInputChange}
+                      placeholder="Width"
+                      className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                      required
+                    />
+                  </div>
                   <select
                     name="dimensions.unit"
                     value={formData?.dimensions?.unit || "feet"}
                     onChange={handleInputChange}
-                    className="w-1/4 p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    className="w-full sm:w-1/4 p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                   >
                     <option value="feet">Feet</option>
                     <option value="meters">Meters</option>
@@ -594,16 +596,16 @@ const Sell = ({ refreshProperties }) => {
 
               {/* Carpet Area */}
               <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
+                <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                   Carpet Area*
                 </label>
-                <div className="flex">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <input
                     type="number"
                     name="carpetArea.value"
                     value={formData?.carpetArea?.value || ""}
                     onChange={handleInputChange}
-                    className="w-2/3 p-2 border-2 rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    className="w-full sm:w-2/3 p-2 border-2 rounded-lg sm:rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                     placeholder="Enter carpet area"
                     required
                   />
@@ -611,7 +613,8 @@ const Sell = ({ refreshProperties }) => {
                     name="carpetArea.unit"
                     value={formData?.carpetArea?.unit || "sq.ft"}
                     onChange={handleInputChange}
-                    className="w-1/3 p-2 border-2 border-l-0 rounded-r-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    className="w-full sm:w-1/3 p-2 border-2 rounded-lg sm:rounded-l-none focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    required
                   >
                     <option value="sq.ft">Sq. Ft</option>
                     <option value="sq.yard">Sq. Yard</option>
@@ -622,16 +625,16 @@ const Sell = ({ refreshProperties }) => {
 
               {/* Built-up Area */}
               <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
+                <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                   Built-up Area*
                 </label>
-                <div className="flex">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <input
                     type="number"
                     name="builtUpArea.value"
                     value={formData?.builtUpArea?.value || ""}
                     onChange={handleInputChange}
-                    className="w-2/3 p-2 border-2 rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    className="w-full sm:w-2/3 p-2 border-2 rounded-lg sm:rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                     placeholder="Enter built-up area"
                     required
                   />
@@ -639,7 +642,8 @@ const Sell = ({ refreshProperties }) => {
                     name="builtUpArea.unit"
                     value={formData?.builtUpArea?.unit || "sq.ft"}
                     onChange={handleInputChange}
-                    className="w-1/3 p-2 border-2 border-l-0 rounded-r-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    className="w-full sm:w-1/3 p-2 border-2 rounded-lg sm:rounded-l-none focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                    required
                   >
                     <option value="sq.ft">Sq. Ft</option>
                     <option value="sq.yard">Sq. Yard</option>
@@ -650,7 +654,7 @@ const Sell = ({ refreshProperties }) => {
 
               {/* Furnishing Status */}
               <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
+                <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                   Furnishing Status*
                 </label>
                 <select
@@ -668,7 +672,7 @@ const Sell = ({ refreshProperties }) => {
 
               {/* Flooring */}
               <div>
-                <label className="block mb-2 text-gray-800 font-semibold">
+                <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                   Flooring*
                 </label>
                 <select
@@ -687,7 +691,7 @@ const Sell = ({ refreshProperties }) => {
 
           {/* Boundary Wall */}
           <div>
-            <label className="block mb-2 text-gray-800 font-semibold">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
               Boundary Wall
             </label>
             <div className="flex items-center space-x-4">
@@ -728,16 +732,16 @@ const Sell = ({ refreshProperties }) => {
 
           {/* Plot Area */}
           <div>
-            <label className="block mb-2 text-gray-800 font-semibold">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
               Plot Area*
             </label>
-            <div className="flex">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <input
                 type="number"
                 name="plotArea"
                 value={formData.plotArea}
                 onChange={handleInputChange}
-                className="w-2/3 p-2 border-2 rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                className="w-full sm:w-2/3 p-2 border-2 rounded-lg sm:rounded-l-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
                 placeholder="Enter plot area"
                 required
               />
@@ -745,7 +749,7 @@ const Sell = ({ refreshProperties }) => {
                 name="plotUnit"
                 value={formData.plotUnit}
                 onChange={handleInputChange}
-                className="w-1/3 p-2 border-2 border-l-0 rounded-r-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+                className="w-full sm:w-1/3 p-2 border-2 rounded-lg sm:rounded-l-none focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
               >
                 <option value="sq.yard">Sq. Yard</option>
                 <option value="sq.m">Sq. Meter</option>
@@ -770,7 +774,7 @@ const Sell = ({ refreshProperties }) => {
 
           {/* Plot Length */}
           <div>
-            <label className="block mb-2 text-gray-800 font-semibold">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
               Plot Length*
             </label>
             <input
@@ -786,7 +790,7 @@ const Sell = ({ refreshProperties }) => {
 
           {/* Plot Width */}
           <div>
-            <label className="block mb-2 text-gray-800 font-semibold">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
               Plot Width*
             </label>
             <input
@@ -802,7 +806,7 @@ const Sell = ({ refreshProperties }) => {
 
           {/* Plot Facing */}
           <div>
-            <label className="block mb-2 text-gray-800 font-semibold">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
               Plot Facing*
             </label>
             <select
@@ -825,7 +829,7 @@ const Sell = ({ refreshProperties }) => {
 
           {/* Plot Boundary Wall */}
           <div>
-            <label className="block mb-2 text-gray-800 font-semibold">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
               Plot Boundary Wall
             </label>
             <div className="flex items-center space-x-4">
@@ -867,7 +871,7 @@ const Sell = ({ refreshProperties }) => {
           {/* Other property fields */}
           {propertyTypeConfig[formData.type]?.fields.map((field) => (
             <div key={field}>
-              <label className="block mb-2 text-gray-800 font-semibold">
+              <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
                 {field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}*
               </label>
               {field === 'soil_type' || field === 'water_source' || field === 'facing' ? (
@@ -880,12 +884,11 @@ const Sell = ({ refreshProperties }) => {
                 >
                   {getOptionsForField(field).map(option => (
                     <option key={option} value={option}>{option}</option>
-                  ))}   
+                  ))}
                 </select>
               ) : (
                 <input
                   type={field === 'acres' ? 'number' : 'text'}
-                  
                   name={field}
                   value={formData[field] || ''}
                   onChange={handleInputChange}
