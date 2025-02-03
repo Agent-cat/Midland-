@@ -32,7 +32,7 @@ const UserProfile = ({ userData, setUserData }) => {
         }
 
         const response = await axios.get(
-          `http://localhost:4000/api/properties/seller/${userData._id}`
+          `https://api.midlandrealestateservices.com/api/properties/seller/${userData._id}`
         );
         setProperties(response.data);
       } catch (error) {
@@ -59,7 +59,7 @@ const UserProfile = ({ userData, setUserData }) => {
     e.preventDefault();
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/auth/update/${userData._id}`,
+        `https://api.midlandrealestateservices.com/api/auth/update/${userData._id}`,
         formData
       );
       setUserData(response.data);
@@ -85,11 +85,11 @@ const UserProfile = ({ userData, setUserData }) => {
   const handleUpdateProperty = async (updatedData) => {
     try {
       await axios.put(
-        `http://localhost:4000/api/properties/${editingProperty._id}`,
+        `https://api.midlandrealestateservices.com/api/properties/${editingProperty._id}`,
         updatedData
       );
       const response = await axios.get(
-        `http://localhost:4000/api/properties/seller/${userData._id}`
+        `https://api.midlandrealestateservices.com/api/properties/seller/${userData._id}`
       );
       setProperties(response.data);
       setShowEditModal(false);
@@ -104,7 +104,7 @@ const UserProfile = ({ userData, setUserData }) => {
   const handleDeleteConfirm = async () => {
     try {
       await axios.delete(
-        `http://localhost:4000/api/properties/${propertyToDelete._id}`
+        `https://api.midlandrealestateservices.com/api/properties/${propertyToDelete._id}`
       );
       setProperties(properties.filter(p => p._id !== propertyToDelete._id));
       setShowDeleteModal(false);
@@ -119,11 +119,11 @@ const UserProfile = ({ userData, setUserData }) => {
   const handleStatusChange = async (property, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:4000/api/properties/${property._id}`,
+        `https://api.midlandrealestateservices.com/api/properties/${property._id}`,
         { ...property, status: newStatus }
       );
       const response = await axios.get(
-        `http://localhost:4000/api/properties/seller/${userData._id}`
+        `https://api.midlandrealestateservices.com/api/properties/seller/${userData._id}`
       );
       setProperties(response.data);
       showToast(`Property status updated to ${newStatus}`);

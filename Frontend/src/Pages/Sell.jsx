@@ -390,10 +390,10 @@ const Sell = ({ refreshProperties }) => {
         }
       });
 
-      console.log("Submitting property data:", propertyData); // Debug log
+      
 
       const response = await axios.post(
-        "http://localhost:4000/api/properties",
+        "https://api.midlandrealestateservices.com/api/properties",
         propertyData,
         {
           headers: {

@@ -89,7 +89,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.post("http://62.72.13.40:4000/api/auth/users");
+      const response = await axios.post("https://api.midlandrealestateservices.com/api/auth/users");
       const allUsers = response.data;
       setUsers(allUsers.filter((user) => user.role === "client"));
       setAgents(allUsers.filter((user) => user.role === "agent"));
@@ -100,7 +100,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   const fetchContacts = async () => {
     try {
-      const response = await axios.get("http://62.72.13.40:4000/api/contacts");
+      const response = await axios.get("https://api.midlandrealestateservices.com/api/contacts");
       setContacts(response.data);
     } catch (error) {
       console.error("Error fetching contacts:", error);
@@ -110,7 +110,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   const fetchAllViews = async () => {
     try {
       const response = await axios.get(
-        "http://62.72.13.40:4000/api/properties/all-views"
+        "https://api.midlandrealestateservices.com/api/properties/all-views"
       );
       const views = response.data;
       setNewViews(views);
@@ -128,7 +128,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await axios.get("http://62.72.13.40:4000/api/feedback");
+      const response = await axios.get("https://api.midlandrealestateservices.com/api/feedback");
       setFeedbacks(response.data);
     } catch (error) {
       console.error("Error fetching feedbacks:", error);
@@ -146,7 +146,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
     setLoading(true);
     try {
       await axios.delete(
-        `http://62.72.13.40:4000/api/properties/${propertyToDelete._id}`
+        `https://api.midlandrealestateservices.com/api/properties/${propertyToDelete._id}`
       );
       refreshProperties();
       setShowDeleteModal(false);
@@ -160,7 +160,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   const handleStatusUpdate = async (contactId, newStatus) => {
     try {
-      await axios.put(`http://62.72.13.40:4000/api/contacts/${contactId}`, {
+      await axios.put(`https://api.midlandrealestateservices.com/api/contacts/${contactId}`, {
         status: newStatus,
       });
       fetchContacts();
@@ -183,7 +183,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   const fetchAndNavigateToProperty = async (propertyId) => {
     try {
       const response = await axios.get(
-        `http://62.72.13.40:4000/api/properties/${propertyId}`
+        `https://api.midlandrealestateservices.com/api/properties/${propertyId}`
       );
       navigate(`/property/${propertyId}`, {
         state: { propertyData: response.data },
@@ -240,7 +240,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   const fetchPropertyViews = async (propertyId) => {
     try {
       const response = await axios.get(
-        `http://62.72.13.40:4000/api/properties/${propertyId}/views`
+        `https://api.midlandrealestateservices.com/api/properties/${propertyId}/views`
       );
       setPropertyViews(response.data);
     } catch (error) {
@@ -255,7 +255,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   const updateViewStatus = async (viewId, newStatus) => {
     try {
-      await axios.put(`http://62.72.13.40:4000/api/properties/views/${viewId}`, {
+      await axios.put(`https://api.midlandrealestateservices.com/api/properties/views/${viewId}`, {
         status: newStatus,
       });
       fetchAllViews();
@@ -275,7 +275,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
   const handleRemarksUpdate = async () => {
     try {
       await axios.put(
-        `http://62.72.13.40:4000/api/properties/views/${selectedViewDetails._id}`,
+        `https://api.midlandrealestateservices.com/api/properties/views/${selectedViewDetails._id}`,
         {
           status: selectedViewDetails.status,
           remarks: remarks,
@@ -358,7 +358,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
     e.preventDefault();
     try {
       await axios.put(
-        `http://62.72.13.40:4000/api/properties/${editingProperty._id}`,
+        `https://api.midlandrealestateservices.com/api/properties/${editingProperty._id}`,
         editForm
       );
       refreshProperties();
@@ -377,7 +377,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
       );
       if (confirmDelete) {
         await axios.delete(
-          `http://62.72.13.40:4000/api/properties/${propertyId}`
+          `https://api.midlandrealestateservices.com/api/properties/${propertyId}`
         );
         refreshProperties();
         showAlert("Property deleted successfully!");
@@ -395,7 +395,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
 
   const handleMarkAsReviewed = async (feedbackId) => {
     try {
-      await axios.put(`http://62.72.13.40:4000/api/feedback/${feedbackId}`, {
+      await axios.put(`https://api.midlandrealestateservices.com/api/feedback/${feedbackId}`, {
         status: "reviewed",
       });
       fetchFeedbacks(); // Refresh feedbacks after update
@@ -442,7 +442,7 @@ const AdminPanel = ({ properties, refreshProperties }) => {
       }
 
       const response = await axios.put(
-        `http://62.72.13.40:4000/api/properties/${propertyToVerify._id}/verify`,
+        `https://api.midlandrealestateservices.com/api/properties/${propertyToVerify._id}/verify`,
         {
           isVerified: !propertyToVerify.isVerified,
           verificationNote,

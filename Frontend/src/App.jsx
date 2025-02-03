@@ -22,7 +22,7 @@ const App = () => {
 
   const fetchProperties = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/properties");
+      const response = await axios.get("https://api.midlandrealestateservices.com/api/properties");
       setProperties(response.data);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -67,7 +67,7 @@ const App = () => {
 
       try {
         const response = await axios.get(
-          `http://localhost:4000/api/properties/cart/${userData._id}`
+          `https://api.midlandrealestateservices.com/api/properties/cart/${userData._id}`
         );
         setCartCount(response.data.length);
       } catch (error) {

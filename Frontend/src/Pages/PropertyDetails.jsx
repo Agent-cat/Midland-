@@ -65,7 +65,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
       } else {
         try {
           const response = await axios.get(
-            `http://localhost:4000/api/properties/${id}`
+            `https://api.midlandrealestateservices.com/api/properties/${id}`
           );
           setPropertyData(response.data);
         } catch (error) {
@@ -85,7 +85,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
 
       try {
         const response = await axios.get(
-          `http://localhost:4000/api/properties/cart/${userData._id}`
+          `https://api.midlandrealestateservices.com/api/properties/cart/${userData._id}`
         );
         setIsInCart(
           response.data.some((item) => item._id === propertyData._id)
@@ -147,7 +147,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
       if (!userData) return;
 
       await axios.post(
-        `http://localhost:4000/api/properties/${propertyData._id}/views`,
+        `https://api.midlandrealestateservices.com/api/properties/${propertyData._id}/views`,
         {
           userId: userData._id,
           phone: phone
@@ -268,7 +268,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:4000/api/properties/cart/add", {
+      await axios.post("https://api.midlandrealestateservices.com/api/properties/cart/add", {
         userId: userData._id,
         propertyId: propertyData._id,
       });
@@ -292,7 +292,7 @@ const PropertyDetails = ({ properties, loggedIn }) => {
 
     setIsSubmitting(true);
     try {
-      await axios.post("http://localhost:4000/api/contacts", {
+      await axios.post("https://api.midlandrealestateservices.com/api/contacts", {
         propertyId: propertyData._id,
         userId: userData._id,
         ...contactForm,

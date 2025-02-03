@@ -16,7 +16,7 @@ const Home = ({ cartCount }) => {
     const fetchTrendingProperties = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:4000/api/properties"
+          "https://api.midlandrealestateservices.com/api/properties"
         );
         setTrendingProperties(response.data.slice(0, 3));
         setIsLoading(false);
