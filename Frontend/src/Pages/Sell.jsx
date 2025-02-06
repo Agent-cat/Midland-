@@ -1018,7 +1018,7 @@ const Sell = ({ refreshProperties }) => {
                 <input
                   type="range"
                   min="10000"
-                  max="10000000"
+                  max="200000000"
                   step="10000"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
@@ -1027,7 +1027,7 @@ const Sell = ({ refreshProperties }) => {
                 <div className="text-sm text-gray-500 mt-2 flex justify-between">
                   <span>₹10K</span>
                   <span className="font-medium">Selected: ₹{formatPrice(formData.price)}</span>
-                  <span>₹1 Cr</span>
+                  <span>₹20Cr</span>
                 </div>
               </div>
 

@@ -67,7 +67,7 @@ const Home = ({ cartCount }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="h-36 scale-[2.5] lg:scale-150 md:h-30  md:pt-7 lg:pt-0 lg:h-80 mb-8"
+                className="h-36 scale-[2.5] lg:scale-150 md:h-30  md:pt-10 lg:pt-0 lg:h-80 mb-8"
               />
               <motion.p
                 initial={{ opacity: 0 }}

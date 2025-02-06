@@ -52,20 +52,11 @@ const CardLayout = ({ initialProperties }) => {
       result = result.filter((property) => bhks.includes(property.bhk));
     }
 
-    if (filters.price && filters.price.length > 0) {
+    if (filters.price && filters.priceRange) {
       result = result.filter((property) => {
-        return filters.price.some((range) => {
-          const price = property.price;
-          if (range === "Under 20L") return price < 2000000;
-          if (range === "20L - 40L")
-            return price >= 2000000 && price <= 4000000;
-          if (range === "40L - 60L")
-            return price >= 4000000 && price <= 6000000;
-          if (range === "60L - 80L")
-            return price >= 6000000 && price <= 8000000;
-          if (range === "80L+") return price >= 8000000;
-          return true;
-        });
+        const propertyPriceInLakhs = property.price / 100000;
+        return propertyPriceInLakhs >= filters.priceRange.min && 
+               propertyPriceInLakhs <= filters.priceRange.max;
       });
     }
 

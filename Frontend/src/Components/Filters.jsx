@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Search,
@@ -10,15 +10,12 @@ import {
   Building,
   ChevronRight,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
 
 const Filters = ({ props, onFilterChange }) => {
   const [selectedFilters, setSelectedFilters] = useState({
     location: [],
     bhk: [],
-    price: [],
+    price: 50,
     sqft: [],
     type: [],
   });
@@ -43,30 +40,50 @@ const Filters = ({ props, onFilterChange }) => {
     },
     price: {
       title: "Price Range",
-      options: ["Under 20L", "20L - 40L", "40L - 60L", "60L - 80L", "80L+"],
+      isSlider: true,
     },
   };
 
-  // Add useEffect to handle search term changes
-  useEffect(() => {
-    onFilterChange({ ...selectedFilters, searchTerm });
-  }, [searchTerm]);
-
   const handleFilterChange = (category, value) => {
-    setSelectedFilters((prev) => {
-      const updatedFilters = {
+    if (category === 'price') {
+      const priceValue = parseInt(value);
+      setSelectedFilters(prev => ({
         ...prev,
-        [category]: prev[category].includes(value)
-          ? prev[category].filter((item) => item !== value)
-          : [...prev[category], value],
-      };
-
-      // Include searchTerm when updating filters
-      onFilterChange({ ...updatedFilters, searchTerm });
-
-      return updatedFilters;
-    });
+        price: priceValue
+      }));
+    } else {
+      setSelectedFilters((prev) => {
+        const updatedFilters = {
+          ...prev,
+          [category]: prev[category].includes(value)
+            ? prev[category].filter((item) => item !== value)
+            : [...prev[category], value],
+        };
+        return updatedFilters;
+      });
+    }
   };
+
+  const formatPrice = (value) => {
+    return `${value}L`;
+  };
+
+  const getPriceRange = (price) => {
+    const buffer = 10;
+    return {
+      min: Math.max(0, price - buffer),
+      max: price + buffer
+    };
+  };
+
+  useEffect(() => {
+    const range = getPriceRange(selectedFilters.price);
+    onFilterChange({ 
+      ...selectedFilters, 
+      searchTerm,
+      priceRange: range
+    });
+  }, [searchTerm, selectedFilters]);
 
   return (
     <div className="p-6 rounded-xl mb-6 bg-white border border-gray-200">
@@ -123,27 +140,44 @@ const Filters = ({ props, onFilterChange }) => {
               {category.title}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {category.options.map((option, index) => (
-                <label
-                  key={index}
-                  className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md border 
-                    cursor-pointer transition-all duration-200 
-                    hover:border-red-200 hover:bg-red-50/70
-                    ${
-                      selectedFilters[key].includes(option)
-                        ? "bg-red-50 border-red-200 text-red-700 shadow-sm"
-                        : "bg-white border-gray-200 text-gray-600"
-                    }`}
-                >
+              {category.isSlider ? (
+                <div className="w-full px-2">
                   <input
-                    type="checkbox"
-                    checked={selectedFilters[key].includes(option)}
-                    onChange={() => handleFilterChange(key, option)}
-                    className="w-3.5 h-3.5 rounded text-red-500 focus:ring-red-400 focus:ring-offset-0"
+                    type="range"
+                    value={selectedFilters.price}
+                    onChange={(e) => handleFilterChange('price', e.target.value)}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-400"
                   />
-                  <span className="whitespace-nowrap text-xs">{option}</span>
-                </label>
-              ))}
+                  <div className="flex justify-center mt-2 text-sm text-gray-600">
+                    <span>Price Range: {formatPrice(selectedFilters.price - 10)} - {formatPrice(selectedFilters.price + 10)}</span>
+                  </div>
+                </div>
+              ) : (
+                category.options.map((option, index) => (
+                  <label
+                    key={index}
+                    className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md border 
+                      cursor-pointer transition-all duration-200 
+                      hover:border-red-200 hover:bg-red-50/70
+                      ${
+                        selectedFilters[key].includes(option)
+                          ? "bg-red-50 border-red-200 text-red-700 shadow-sm"
+                          : "bg-white border-gray-200 text-gray-600"
+                      }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFilters[key].includes(option)}
+                      onChange={() => handleFilterChange(key, option)}
+                      className="w-3.5 h-3.5 rounded text-red-500 focus:ring-red-400 focus:ring-offset-0"
+                    />
+                    <span className="whitespace-nowrap text-xs">{option}</span>
+                  </label>
+                ))
+              )}
             </div>
           </div>
         ))}
