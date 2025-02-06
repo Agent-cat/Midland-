@@ -730,6 +730,24 @@ const Sell = ({ refreshProperties }) => {
             </div>
           </div>
 
+          {/* Map URL Input */}
+          <div className="w-full">
+            <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
+              Location Map URL (Google Maps Embed URL)
+            </label>
+            <input
+              type="url"
+              name="locationMap"
+              value={formData.locationMap || ""}
+              onChange={handleInputChange}
+              placeholder="Enter Google Maps embed URL"
+              className="w-full p-2 border-2 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-500 transition-all duration-300"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Go to Google Maps, click Share, select Embed map, and copy the URL from the iframe src attribute
+            </p>
+          </div>
+
           {/* Plot Area */}
           <div>
             <label className="block mb-2 text-gray-800 font-semibold text-sm sm:text-base">
