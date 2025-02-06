@@ -24,23 +24,26 @@ const Filters = ({ props, onFilterChange }) => {
   const categories = {
     location: {
       title: "Location",
-      options: [...new Set(props.map((prop) => prop.location))],
+      options: [...new Set(props.map((prop) => prop.location))].filter(Boolean).sort(),
     },
     type: {
       title: "Property Type",
-      options: [...new Set(props.map((prop) => prop.type))],
+      options: [...new Set(props.map((prop) => prop.type?.toLowerCase()))].filter(Boolean).sort(),
     },
     bhk: {
       title: "BHK",
-      options: [...new Set(props.map((prop) => `${prop.bhk} BHK`))],
+      options: [...new Set(props.map((prop) => prop.bhk ? `${prop.bhk} BHK` : null))].filter(Boolean).sort((a, b) => parseInt(a) - parseInt(b)),
     },
     sqft: {
       title: "Area (sq.ft)",
-      options: ["500-1000", "1000-1500", "1500-2000", "2000+"],
+      options: ["0-500", "500-1000", "1000-1500", "1500-2000", "2000+"],
     },
     price: {
-      title: "Price Range",
+      title: "Price Range (Lakhs)",
       isSlider: true,
+      min: 0,
+      max: Math.max(100, ...props.map(prop => Math.ceil(prop.price / 100000))),
+      step: 5
     },
   };
 
@@ -69,10 +72,11 @@ const Filters = ({ props, onFilterChange }) => {
   };
 
   const getPriceRange = (price) => {
-    const buffer = 10;
+    const maxPrice = categories.price.max;
+    const percentage = price / 100;
     return {
-      min: Math.max(0, price - buffer),
-      max: price + buffer
+      min: Math.max(0, Math.floor(maxPrice * percentage - 10)),
+      max: Math.ceil(maxPrice * percentage + 10)
     };
   };
 
@@ -146,13 +150,13 @@ const Filters = ({ props, onFilterChange }) => {
                     type="range"
                     value={selectedFilters.price}
                     onChange={(e) => handleFilterChange('price', e.target.value)}
-                    min={0}
-                    max={100}
-                    step={5}
+                    min={category.min}
+                    max={category.max}
+                    step={category.step}
                     className="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-400"
                   />
                   <div className="flex justify-center mt-2 text-sm text-gray-600">
-                    <span>Price Range: {formatPrice(selectedFilters.price - 10)} - {formatPrice(selectedFilters.price + 10)}</span>
+                    <span>Price Range: {formatPrice(getPriceRange(selectedFilters.price).min)} - {formatPrice(getPriceRange(selectedFilters.price).max)}</span>
                   </div>
                 </div>
               ) : (

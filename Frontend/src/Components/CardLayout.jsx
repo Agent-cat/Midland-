@@ -49,7 +49,9 @@ const CardLayout = ({ initialProperties }) => {
 
     if (filters.bhk && filters.bhk.length > 0) {
       const bhks = filters.bhk.map((bhk) => parseInt(bhk.split(" ")[0]));
-      result = result.filter((property) => bhks.includes(property.bhk));
+      result = result.filter((property) => 
+        property.bhk && bhks.includes(parseInt(property.bhk))
+      );
     }
 
     if (filters.price && filters.priceRange) {
@@ -62,7 +64,8 @@ const CardLayout = ({ initialProperties }) => {
 
     if (filters.sqft && filters.sqft.length > 0) {
       result = result.filter((property) => {
-        const propertySqft = parseInt(property.sqft);
+        // Get the area value from either carpetArea or builtUpArea
+        const propertySqft = property.carpetArea?.value || property.builtUpArea?.value || 0;
         return filters.sqft.some((range) => {
           const [min, max] = range
             .split("-")
@@ -74,7 +77,7 @@ const CardLayout = ({ initialProperties }) => {
 
     if (filters.type && filters.type.length > 0) {
       result = result.filter((property) =>
-        filters.type.includes(property.type)
+        filters.type.includes(property.type.toLowerCase())
       );
     }
 
